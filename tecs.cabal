@@ -1,0 +1,15 @@
+Name:Tecs
+Version:0.1
+Cabal-Version: >= 1.2
+License:MIT
+Author:Mike Verdone
+Homepage:
+Category:
+Synopsis:A text editor
+Build-Type: Simple
+
+Executable tes
+  Hs-Source-Dirs: src
+  Main-Is: Tecs/Tes.hs
+  Build-Depends: base >= 4
+               , hscurses
