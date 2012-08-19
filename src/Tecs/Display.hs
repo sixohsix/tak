@@ -32,6 +32,17 @@ renderInBox (ScreenBox (Box lineOffset rowOffset maxHeight maxWidth))
 refresh = C.refresh
 waitKey = CH.getKey C.refresh
 
+cursesKeyToEvt :: C.Key -> Event
+cursesKeyToEvt (C.KeyChar c) = KeyEvent $ KeyChar c
+cursesKeyToEvt C.KeyUp       = KeyEvent KeyUp
+cursesKeyToEvt C.KeyDown     = KeyEvent KeyDown
+cursesKeyToEvt _             = NoEvent
+
+waitEvent :: IO (Event)
+waitEvent = do
+  key <- waitKey
+  return $ cursesKeyToEvt key
+
 printStr :: String -> RenderW ()
 printStr s = RenderW ((), [PrintStr s])
 setCursor :: Pos -> RenderW ()
