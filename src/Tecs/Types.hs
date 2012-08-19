@@ -33,9 +33,18 @@ data Pos = Pos {
   row :: Int
   }
 
-data CursorPos = CursorPos Pos
-data BufferPos = BufferPos Pos
-data ScreenPos = ScreenPos Pos
+data RenderAction = PrintStr String
+                  | SetCursor Pos
+type RenderActions = [RenderAction]
+newtype RenderW a = RenderW {
+  execRender :: (a, RenderActions)
+  }
+instance Monad RenderW where
+  return x = RenderW (x, [])
+  m >>= k = let (a, ras)  = execRender m
+                n         = k a
+                (b, ras') = execRender n
+            in RenderW (b, ras ++ ras')
 
 class Editor a where
-  render :: a -> Int -> Int -> (Pos -> String -> IO ()) -> IO ()
+  render :: a -> Int -> Int -> RenderW ()

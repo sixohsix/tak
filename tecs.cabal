@@ -13,3 +13,4 @@ Executable tes
   Main-Is: Tecs/Tes.hs
   Build-Depends: base >= 4
                , hscurses
+               , mtl >= 2
