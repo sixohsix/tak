@@ -30,6 +30,9 @@ execState m s = snd (runState m s)
 gets :: State s s
 gets = State $ \s -> (s, s)
 
+get :: (s -> b) -> State s b
+get f = gets >>= (\st -> return (f st))
+
 puts :: s -> State s ()
 puts s = State $ \_ -> ((), s)
 
@@ -40,22 +43,48 @@ instance Editor SimpleEditor where
   render editor height width = do
     renderBuffer Crop (buffer editor) height width
     setCursor (cursorPos editor)
-  respond editor evt = execState (lookupWithDefault evtMap evt) editor
+  respond editor evt = execState ((lookupWithDefault evtMap evt) evt) editor
 
-cursorDown = mods $ \ed ->
+type SimpleEditorAction = State SimpleEditor ()
+
+advance pos = pos { row = (row pos) + 1}
+
+insertChar :: Char -> SimpleEditorAction
+insertChar c = do
+  st <- gets
+  let cursor = cursorPos st
+      buf = buffer st
+  puts st { buffer = insertCharIntoBuffer buf cursor c,
+            cursorPos = advance cursor }
+
+insertLinebreak :: Event -> SimpleEditorAction
+insertLinebreak _ = do
+  st <- gets
+  let cursor = cursorPos st
+      buf = buffer st
+  puts st { buffer = insertLinebreakIntoBuffer buf cursor,
+            cursorPos = Pos { line = (line cursor) + 1,
+                              row = 0 } }
+
+cursorDown _ = mods $ \ed ->
   let cp = cursorPos ed
       nextLinePos = min (numLines $ buffer ed) (line cp + 1)
   in ed { cursorPos = cp { line = nextLinePos }}
 
-cursorUp = mods $ \ed ->
+cursorUp _ = mods $ \ed ->
   let cp = cursorPos ed
       nextLinePos = max 0 (line cp - 1)
   in ed { cursorPos = cp { line = nextLinePos }}
 
+handleOther evt = case evt of
+  KeyEvent (KeyChar c) -> insertChar c
+  otherwise -> return ()
+
 evtMap = defaultMapFromList [
   (KeyEvent KeyUp, cursorUp),
-  (KeyEvent KeyDown, cursorDown)
-  ] (return ())
+  (KeyEvent KeyDown, cursorDown),
+  (KeyEvent KeyEnter, insertLinebreak)
+  ] handleOther
 
 
 simpleEditorFromFile :: String -> IO (SimpleEditor)

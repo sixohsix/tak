@@ -5,7 +5,7 @@ import qualified Data.Sequence as Seq
 
 data Buffer = Buffer {
   lineSeq :: Seq.Seq String
-  }
+  } deriving (Show)
 
 data Box = Box {
   top :: Int,
@@ -49,6 +49,7 @@ data Key = KeyChar Char
          | KeyLeft
          | KeyRight
          | KeyEscape
+         | KeyEnter
            deriving (Show, Eq, Ord)
 data Event = KeyEvent Key
            | NoEvent
@@ -60,7 +61,8 @@ data DefaultMap a b = DefaultMap {
   }
 
 defaultMapFromList :: Ord a => [(a, b)] -> b -> DefaultMap a b
-defaultMapFromList list defaultVal = DefaultMap (Map.fromList list) defaultVal
+defaultMapFromList list defaultVal =
+  DefaultMap (Map.fromList list) defaultVal
 
 lookupWithDefault :: Ord a => DefaultMap a b -> a -> b
 lookupWithDefault eMap evt =

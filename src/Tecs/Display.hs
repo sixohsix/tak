@@ -29,6 +29,7 @@ cursesKeyToEvt (C.KeyChar '\ESC') = KeyEvent KeyEscape
 cursesKeyToEvt (C.KeyChar c) = KeyEvent $ KeyChar c
 cursesKeyToEvt C.KeyUp       = KeyEvent KeyUp
 cursesKeyToEvt C.KeyDown     = KeyEvent KeyDown
+cursesKeyToEvt C.KeyEnter    = KeyEvent KeyEnter
 cursesKeyToEvt _             = NoEvent
 
 waitEvent :: IO (Event)
