@@ -12,9 +12,9 @@ wrapString width str = wrapString' width str
           in left:(wrapString' width right)
 
 
-linesToFixedLengthStrs :: WrapMode -> Int -> [Line] -> [String]
+linesToFixedLengthStrs :: WrapMode -> Int -> [String] -> [String]
 linesToFixedLengthStrs wrapMode width lines =
-  let lineToStrs (Line line) = case wrapMode of
+  let lineToStrs line = case wrapMode of
         Crop      -> [take width line]
         otherwise -> wrapString width line
   in concat $ map lineToStrs lines

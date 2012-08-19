@@ -1,11 +1,10 @@
 module Tecs.Types where
 
 import qualified Data.Map as Map
+import qualified Data.Sequence as Seq
 
-
-data Line = Line String
 data Buffer = Buffer {
-  lines :: [Line]
+  lineSeq :: Seq.Seq String
   }
 
 data Box = Box {
@@ -21,15 +20,8 @@ bottom box = top box + height box
 right :: Box -> Int
 right box = left box + width box
 
-data ScreenBox = ScreenBox Box
-
 data WrapMode = Crop
               | Wrap
-
-data BufferView = BufferView {
-  box :: Box,
-  wrapMode :: WrapMode
-  }
 
 data Pos = Pos {
   line :: Int,
@@ -56,6 +48,7 @@ data Key = KeyChar Char
          | KeyDown
          | KeyLeft
          | KeyRight
+         | KeyEscape
            deriving (Show, Eq, Ord)
 data Event = KeyEvent Key
            | NoEvent

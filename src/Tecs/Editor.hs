@@ -44,7 +44,7 @@ instance Editor SimpleEditor where
 
 cursorDown = mods $ \ed ->
   let cp = cursorPos ed
-      nextLinePos = min (length $ TT.lines $ buffer ed) (line cp + 1)
+      nextLinePos = min (numLines $ buffer ed) (line cp + 1)
   in ed { cursorPos = cp { line = nextLinePos }}
 
 cursorUp = mods $ \ed ->
@@ -57,15 +57,16 @@ evtMap = defaultMapFromList [
   (KeyEvent KeyDown, cursorDown)
   ] (return ())
 
+
 simpleEditorFromFile :: String -> IO (SimpleEditor)
 simpleEditorFromFile filename = do
   s <- readFile filename
-  return $ SimpleEditor (bufferFromStr s) (Pos 0 0) filename
+  return $ SimpleEditor (strToBuffer s) (Pos 0 0) filename
 
-renderEditor :: Editor a => ScreenBox -> a -> IO ()
-renderEditor sb@(ScreenBox (Box _ _ height width)) editor =
+renderEditor :: Editor a => Box -> a -> IO ()
+renderEditor b@(Box _ _ height width) editor =
   let (_, commands) = execRender (render editor height width)
-  in do mapM (drawToScreen sb) commands
+  in do mapM (drawToScreen b) commands
         return ()
 
 data InfoLineEditor = InfoLineEditor {
@@ -77,6 +78,6 @@ instance Editor InfoLineEditor where
   respond editor evt = editor
 
 setInfoLineContent infoLineEditor str =
-  infoLineEditor { infoBuffer = bufferFromStr str }
+  infoLineEditor { infoBuffer = strToBuffer str }
 
-defaultInfoLineEditor = InfoLineEditor $ bufferFromStr ""
+defaultInfoLineEditor = InfoLineEditor $ strToBuffer ""
