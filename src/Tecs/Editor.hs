@@ -3,11 +3,15 @@
 module Tecs.Editor where
 
 import Prelude as P
+import qualified System.IO.UTF8 as UTF8
+
 
 import Tecs.Types as TT
 import Tecs.Text
 import Tecs.Buffer
 import Tecs.Display
+
+import Control.Monad.State.Lazy
 
 data SimpleEditor = SimpleEditor {
   buffer :: Buffer,
@@ -15,63 +19,45 @@ data SimpleEditor = SimpleEditor {
   fileName :: String
   }
 
-
-newtype State s a = State {
-  runState :: s -> (a, s)
-  }
-instance Monad (State s) where
-  return x = State $ \s -> (x, s)
-  m >>= k  = State $ \s -> let (a, s') = (runState m) s
-                           in runState (k a) s'
-
-execState :: State s a -> s -> s
-execState m s = snd (runState m s)
-
-gets :: State s s
-gets = State $ \s -> (s, s)
-
-get :: (s -> b) -> State s b
-get f = gets >>= (\st -> return (f st))
-
-puts :: s -> State s ()
-puts s = State $ \_ -> ((), s)
-
-mods :: (s -> s) -> State s ()
-mods f = gets >>= (\s -> puts $ f s)
-
 instance Editor SimpleEditor where
   render editor height width = do
     renderBuffer Crop (buffer editor) height width
-    setCursor (cursorPos editor)
+    setCursor (insertPos editor)
   respond editor evt = execState ((lookupWithDefault evtMap evt) evt) editor
 
 type SimpleEditorAction = State SimpleEditor ()
+
+insertPos :: SimpleEditor -> Pos
+insertPos se = let cPos = cursorPos se
+                   l = line cPos
+                   r = min (row cPos) (length $ lineAt l $ buffer se)
+               in Pos l r
 
 advance pos = pos { row = (row pos) + 1}
 
 insertChar :: Char -> SimpleEditorAction
 insertChar c = do
-  st <- gets
-  let cursor = cursorPos st
+  st <- get
+  let cursor = insertPos st
       buf = buffer st
-  puts st { buffer = insertCharIntoBuffer buf cursor c,
-            cursorPos = advance cursor }
+  put st { buffer = insertCharIntoBuffer buf cursor c,
+           cursorPos = advance cursor }
 
 insertLinebreak :: Event -> SimpleEditorAction
 insertLinebreak _ = do
-  st <- gets
-  let cursor = cursorPos st
+  st <- get
+  let cursor = insertPos st
       buf = buffer st
-  puts st { buffer = insertLinebreakIntoBuffer buf cursor,
-            cursorPos = Pos { line = (line cursor) + 1,
-                              row = 0 } }
+  put $ st { buffer = insertLinebreakIntoBuffer buf cursor,
+             cursorPos = Pos { line = (line cursor) + 1,
+                                row = 0 } }
 
-cursorDown _ = mods $ \ed ->
+cursorDown _ = modify $ \ed ->
   let cp = cursorPos ed
-      nextLinePos = min (numLines $ buffer ed) (line cp + 1)
+      nextLinePos = min (lastLineIdx $ buffer ed) (line cp + 1)
   in ed { cursorPos = cp { line = nextLinePos }}
 
-cursorUp _ = mods $ \ed ->
+cursorUp _ = modify $ \ed ->
   let cp = cursorPos ed
       nextLinePos = max 0 (line cp - 1)
   in ed { cursorPos = cp { line = nextLinePos }}
@@ -89,7 +75,7 @@ evtMap = defaultMapFromList [
 
 simpleEditorFromFile :: String -> IO (SimpleEditor)
 simpleEditorFromFile filename = do
-  s <- readFile filename
+  s <- UTF8.readFile filename
   return $ SimpleEditor (strToBuffer s) (Pos 0 0) filename
 
 renderEditor :: Editor a => Box -> a -> IO ()

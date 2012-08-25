@@ -28,7 +28,7 @@ data Pos = Pos {
   row :: Int
   } deriving (Show)
 
-data RenderAction = PrintStr String
+data RenderAction = PrintStr Pos String
                   | SetCursor Pos
                   deriving (Show)
 

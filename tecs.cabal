@@ -14,4 +14,6 @@ Executable tes
   Build-Depends: base >= 4
                , containers >= 0.4
                , hscurses
+               , setlocale >= 0.0.3
                , mtl >= 2
+               , utf8-string >= 0.3.7

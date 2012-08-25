@@ -6,6 +6,7 @@ import qualified Data.Map as Map
 import Tecs.Types
 import Tecs.Display
 import Tecs.Editor
+import Tecs.Buffer
 
 import Debug.Trace (trace)
 
@@ -42,8 +43,9 @@ handleEvt tesState evt = (lookupWithDefault topEvtMap evt) tesState evt
 
 mainLoop tesState = do
   (y, x) <- getScreenSize
+  clearScreen
   renderEditor (Box 0       0 (y - 1) x) (editor tesState)
-  renderEditor (Box (y - 1) 0      1  x) (infoLine tesState)
+  --renderEditor (Box (y - 1) 0      1  x) (infoLine tesState)
   refresh
   evt <- waitEvent
   let nextTesState = handleEvt tesState evt
