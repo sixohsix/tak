@@ -15,6 +15,8 @@ withCurses f = do
   setLocale LC_ALL (Just "")
   CH.start
   C.echo False
+  C.keypad C.stdScr True
+  C.nl True
   f
   C.endWin
   CH.end
@@ -31,9 +33,13 @@ refresh = C.refresh
 
 cursesKeyToEvt :: C.Key -> Event
 cursesKeyToEvt (C.KeyChar '\ESC') = KeyEvent KeyEscape
+cursesKeyToEvt (C.KeyChar '\n')   = KeyEvent KeyEnter
+cursesKeyToEvt (C.KeyChar '\DEL') = KeyEvent KeyDel
 cursesKeyToEvt (C.KeyChar c)      = KeyEvent $ KeyChar c
 cursesKeyToEvt C.KeyUp            = KeyEvent KeyUp
 cursesKeyToEvt C.KeyDown          = KeyEvent KeyDown
+cursesKeyToEvt C.KeyLeft          = KeyEvent KeyLeft
+cursesKeyToEvt C.KeyRight         = KeyEvent KeyRight
 cursesKeyToEvt C.KeyEnter         = KeyEvent KeyEnter
 cursesKeyToEvt _                  = NoEvent
 
@@ -53,6 +59,8 @@ drawToScreen (Box top left height width) command =
     SetCursor (Pos line row) -> C.move (top + (clamp 0 height line))
                                        (left + (clamp 0 width row))
     PrintStr (Pos line row) str -> do
-      mapM (\(r, c) -> C.mvAddCh line r $ (fromIntegral . ord) c)
-           (zip [0..] str)
+      let realLine = line + top
+          realRow  = row + left
+      mapM (\(r, c) -> C.mvAddCh realLine r $ (fromIntegral . ord) c)
+           (zip [realRow..] str)
       return ()

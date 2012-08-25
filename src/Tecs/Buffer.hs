@@ -39,6 +39,16 @@ insertCharIntoBuffer buf (Pos y x) char =
   in buf { lineSeq = update y (before ++ [char] ++ after) seq }
 
 
+deleteCharFromBuffer :: Buffer -> Pos -> Buffer
+deleteCharFromBuffer buf (Pos y x) =
+  let seq = lineSeq buf
+      line = index seq y
+      (before, after) = P.splitAt x line
+      newBefore = if not $ P.null before
+                  then P.take (P.length before - 1) before
+                  else before
+  in buf { lineSeq = update y (newBefore ++ after) seq}
+
 insertLinebreakIntoBuffer :: Buffer -> Pos -> Buffer
 insertLinebreakIntoBuffer buf (Pos y x) =
   let seq = lineSeq buf

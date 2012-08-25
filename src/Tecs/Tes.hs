@@ -45,7 +45,7 @@ mainLoop tesState = do
   (y, x) <- getScreenSize
   clearScreen
   renderEditor (Box 0       0 (y - 1) x) (editor tesState)
-  --renderEditor (Box (y - 1) 0      1  x) (infoLine tesState)
+  renderEditor (Box (y - 1) 0      1  x) (infoLine tesState)
   refresh
   evt <- waitEvent
   let nextTesState = handleEvt tesState evt

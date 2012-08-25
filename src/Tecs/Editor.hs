@@ -34,6 +34,7 @@ insertPos se = let cPos = cursorPos se
                in Pos l r
 
 advance pos = pos { row = (row pos) + 1}
+retreat pos = pos { row = max 0 (row pos - 1)}
 
 insertChar :: Char -> SimpleEditorAction
 insertChar c = do
@@ -42,6 +43,13 @@ insertChar c = do
       buf = buffer st
   put st { buffer = insertCharIntoBuffer buf cursor c,
            cursorPos = advance cursor }
+
+deleteChar :: Event -> SimpleEditorAction
+deleteChar _ = modify $ \st ->
+  let cursor = insertPos st
+      buf = buffer st
+  in st { buffer = deleteCharFromBuffer buf cursor,
+          cursorPos = retreat cursor }
 
 insertLinebreak :: Event -> SimpleEditorAction
 insertLinebreak _ = do
@@ -62,6 +70,16 @@ cursorUp _ = modify $ \ed ->
       nextLinePos = max 0 (line cp - 1)
   in ed { cursorPos = cp { line = nextLinePos }}
 
+cursorLeft _ = modify $ \ed ->
+  let cp = cursorPos ed
+      nextRowPos = max 0 (row cp - 1)
+  in ed { cursorPos = cp { row = nextRowPos }}
+
+cursorRight _ = modify $ \ed ->
+  let cp = cursorPos ed
+      nextRowPos = min (length $ lineAt (line cp) (buffer ed)) (row cp + 1)
+  in ed { cursorPos = cp { row = nextRowPos }}
+
 handleOther evt = case evt of
   KeyEvent (KeyChar c) -> insertChar c
   otherwise -> return ()
@@ -69,7 +87,10 @@ handleOther evt = case evt of
 evtMap = defaultMapFromList [
   (KeyEvent KeyUp, cursorUp),
   (KeyEvent KeyDown, cursorDown),
-  (KeyEvent KeyEnter, insertLinebreak)
+  (KeyEvent KeyLeft, cursorLeft),
+  (KeyEvent KeyRight, cursorRight),
+  (KeyEvent KeyEnter, insertLinebreak),
+  (KeyEvent KeyDel, deleteChar)
   ] handleOther
 
 

@@ -50,6 +50,7 @@ data Key = KeyChar Char
          | KeyRight
          | KeyEscape
          | KeyEnter
+         | KeyDel
            deriving (Show, Eq, Ord)
 data Event = KeyEvent Key
            | NoEvent
