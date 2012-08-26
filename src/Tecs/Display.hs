@@ -3,11 +3,13 @@ module Tecs.Display where
 import qualified UI.HSCurses.CursesHelper as CH
 import qualified UI.HSCurses.Curses as C
 import Prelude
+import Control.Monad
 import Control.Monad.Writer
-import Data.Char (ord)
+import Data.Char (ord, chr)
 import System.Locale.SetLocale
 import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as U
+import Foreign.C.Types (CInt)
 
 import Tecs.Types
 
@@ -51,19 +53,48 @@ cursesKeyToEvt _                  = NoEvent
 
 
 waitEvent :: IO (Event)
-waitEvent = waitEvent' (U.fromString "")
+waitEvent = let
+  cIntToInt = fromIntegral . toInteger
 
-waitEvent' :: B.ByteString -> IO (Event)
-waitEvent' bs = do
-  key <- nextKey
-  case key of
-    C.KeyChar c ->
-      let nextBs = B.concat [bs, (U.fromString $ c:"")]
-      in case U.uncons nextBs of
-        Just (realChar, _) -> return $ cursesKeyToEvt $ C.KeyChar realChar
-        otherwise -> waitEvent' nextBs
-    otherwise ->
-      return $ cursesKeyToEvt key
+  isValidFirstKey key =
+    key <= 127
+    || (key >= 124 && key <= 244)
+
+  isValidNextKey key =
+    key >= 128 && key <= 191
+
+  nMoreBytes firstKey
+    | firstKey <= 127                     = 0
+    | firstKey >= 194 && firstKey <= 223  = 1
+    | firstKey >= 224 && firstKey <= 239  = 2
+    | firstKey >= 240 && firstKey <= 244  = 3
+    | otherwise                           = 0
+
+  cIntToBs :: [CInt] -> B.ByteString
+  cIntToBs l = U.fromString $ map (chr . fromIntegral . toInteger) l
+
+  decodeKey :: CInt -> IO (C.Key)
+  decodeKey firstKey =
+    if isValidFirstKey firstKey
+    then decodeAfterNMore (nMoreBytes firstKey) [firstKey]
+    else return $ C.decodeKey firstKey
+
+  decodeAfterNMore :: Int -> [CInt] -> IO (C.Key)
+  decodeAfterNMore nBytes ints =
+    if nBytes > 0
+    then do
+      key <- C.getch
+      if isValidNextKey key
+        then decodeAfterNMore (nBytes - 1) (ints ++ [key])
+        else decodeKey key
+    else case (U.decode . cIntToBs) ints of
+      Just (c, _) -> return $ C.KeyChar c
+      otherwise   -> return $ C.decodeKey (ints !! 0)
+  in do
+    firstKeyCInt <- C.getch
+    utf8DecodedKey <- decodeKey firstKeyCInt
+    return $ cursesKeyToEvt utf8DecodedKey
+
 
 printStr :: Pos -> String -> RenderW ()
 printStr p s = RenderW ((), [PrintStr p s])
