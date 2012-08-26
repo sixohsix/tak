@@ -6,13 +6,15 @@ import Prelude
 import Control.Monad.Writer
 import Data.Char (ord)
 import System.Locale.SetLocale
+import qualified Data.ByteString as B
+import qualified Data.ByteString.UTF8 as U
 
 import Tecs.Types
 
 
 withCurses :: IO () -> IO ()
 withCurses f = do
-  setLocale LC_ALL (Just "")
+  setLocale LC_ALL Nothing
   CH.start
   C.echo False
   C.keypad C.stdScr True
@@ -31,6 +33,10 @@ clamp low high = max low . min high
 
 refresh = C.refresh
 
+nextKey = CH.getKey C.refresh
+
+charAsUtf8 c = maybe '?' fst (U.uncons $ U.fromString $ c:"")
+
 cursesKeyToEvt :: C.Key -> Event
 cursesKeyToEvt (C.KeyChar '\ESC') = KeyEvent KeyEscape
 cursesKeyToEvt (C.KeyChar '\n')   = KeyEvent KeyEnter
@@ -43,10 +49,21 @@ cursesKeyToEvt C.KeyRight         = KeyEvent KeyRight
 cursesKeyToEvt C.KeyEnter         = KeyEvent KeyEnter
 cursesKeyToEvt _                  = NoEvent
 
+
 waitEvent :: IO (Event)
-waitEvent = do
-  key <- C.getCh
-  return $ cursesKeyToEvt key
+waitEvent = waitEvent' (U.fromString "")
+
+waitEvent' :: B.ByteString -> IO (Event)
+waitEvent' bs = do
+  key <- nextKey
+  case key of
+    C.KeyChar c ->
+      let nextBs = B.concat [bs, (U.fromString $ c:"")]
+      in case U.uncons nextBs of
+        Just (realChar, _) -> return $ cursesKeyToEvt $ C.KeyChar realChar
+        otherwise -> waitEvent' nextBs
+    otherwise ->
+      return $ cursesKeyToEvt key
 
 printStr :: Pos -> String -> RenderW ()
 printStr p s = RenderW ((), [PrintStr p s])
