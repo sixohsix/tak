@@ -13,6 +13,8 @@ import Foreign.C.Types (CInt)
 
 import Tecs.Types
 
+import Debug.Trace (trace)
+
 
 withCurses :: IO () -> IO ()
 withCurses f = do
@@ -53,8 +55,7 @@ waitEvent = let
   cIntToInt = fromIntegral . toInteger
 
   isValidFirstKey key =
-    key <= 127
-    || (key >= 124 && key <= 244)
+    key <= 255
 
   isValidNextKey key =
     key >= 128 && key <= 191
@@ -67,7 +68,7 @@ waitEvent = let
     | otherwise                           = 0
 
   cIntToBs :: [CInt] -> B.ByteString
-  cIntToBs l = U.fromString $ map (chr . fromIntegral . toInteger) l
+  cIntToBs l = B.pack $ map (fromIntegral . toInteger) l
 
   getNextKey = do
     k <- C.getch
@@ -117,6 +118,6 @@ drawToScreen (Box top left height width) command =
     PrintStr (Pos line row) str -> do
       let realLine = line + top
           realRow  = row + left
-      mapM (\(r, c) -> C.mvAddCh realLine r $ (fromIntegral . ord) c)
-           (zip [realRow..] str)
+      C.move realLine realRow
+      C.wAddStr C.stdScr str
       return ()

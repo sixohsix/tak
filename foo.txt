@@ -3,7 +3,7 @@ This is ONLY a test
 
 lol wat
 
-unicode: ��øøü
-
+unicode: ππππππøøøü
+“Whatever”
 
 END
