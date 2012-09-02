@@ -46,6 +46,7 @@ instance Monad RenderW where
             in RenderW (b, ras ++ ras')
 
 data Key = KeyChar Char
+         | KeyCtrlChar Char
          | KeyUp
          | KeyDown
          | KeyLeft

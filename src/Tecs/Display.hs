@@ -5,7 +5,8 @@ import qualified UI.HSCurses.Curses as C
 import Prelude
 import Control.Monad
 import Control.Monad.Writer
-import Data.Char (ord, chr)
+import Data.Char (chr, ord)
+import Data.Bits ( (.|.) )
 import System.Locale.SetLocale
 import qualified Data.ByteString as B
 import qualified Data.Text as DT
@@ -42,7 +43,9 @@ cursesKeyToEvt :: C.Key -> Event
 cursesKeyToEvt (C.KeyChar '\ESC') = KeyEvent KeyEscape
 cursesKeyToEvt (C.KeyChar '\n')   = KeyEvent KeyEnter
 cursesKeyToEvt (C.KeyChar '\DEL') = KeyEvent KeyDel
-cursesKeyToEvt (C.KeyChar c)      = KeyEvent $ KeyChar c
+cursesKeyToEvt (C.KeyChar c)
+  | (ord c) > 32 = KeyEvent $ KeyChar c
+  | otherwise    = KeyEvent $ KeyCtrlChar (chr ((ord c) .|. (2 ^ 6)))
 cursesKeyToEvt C.KeyUp            = KeyEvent KeyUp
 cursesKeyToEvt C.KeyDown          = KeyEvent KeyDown
 cursesKeyToEvt C.KeyLeft          = KeyEvent KeyLeft
