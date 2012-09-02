@@ -25,6 +25,10 @@ bufferToLines buf = toList (lineSeq buf)
 lineAt :: Int -> Buffer -> String
 lineAt x buf = Seq.index (lineSeq buf) x
 
+bufferDropLines :: Int -> Buffer -> Buffer
+bufferDropLines lines buffer =
+  Buffer $ Seq.drop lines (lineSeq buffer)
+
 renderBuffer :: WrapMode -> Buffer -> Int -> Int -> RenderW ()
 renderBuffer wrapMode buffer height width =
   let lineStrs = linesToFixedLengthStrs wrapMode width (bufferToLines buffer)

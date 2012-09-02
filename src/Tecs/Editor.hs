@@ -17,14 +17,20 @@ import Control.Monad.State
 data SimpleEditor = SimpleEditor {
   buffer :: Buffer,
   cursorPos :: Pos,
-  fileName :: String
+  fileName :: String,
+  lineScroll :: Int,
+  viewHeight :: Int
   }
+defaultSimpleEditor :: SimpleEditor
+defaultSimpleEditor =
+  SimpleEditor (strToBuffer "") (Pos 0 0) "" 0 24
 
 instance Editor SimpleEditor where
   render editor height width = do
-    renderBuffer Crop (buffer editor) height width
-    setCursor (insertPos editor)
-  respond editor evt = execState ((lookupWithDefault evtMap evt) evt) editor
+    let displayedBuffer = bufferDropLines (lineScroll editor) (buffer editor)
+    renderBuffer Crop displayedBuffer height width
+    setCursor (screenPos editor)
+  respond editor evt = (lookupWithDefault evtMap evt) evt editor
 
 
 type SimpleEditorAction = State SimpleEditor ()
@@ -35,71 +41,106 @@ insertPos se = let cPos = cursorPos se
                    r = min (row cPos) (length $ lineAt l $ buffer se)
                in Pos l r
 
+screenPos :: SimpleEditor -> Pos
+screenPos se = let iPos = insertPos se
+                   screenLine = (line iPos) - (lineScroll se)
+                   isOnScreen = screenLine >= 0
+               in if isOnScreen
+                  then iPos { line = screenLine }
+                  else Pos 0 0
+
 advance pos = pos { row = (row pos) + 1}
 retreat pos = pos { row = max 0 (row pos - 1)}
 
-insertChar :: Char -> SimpleEditorAction
-insertChar c = do
-  st <- get
+insertChar :: Char -> SimpleEditor -> SimpleEditor
+insertChar c st =
   let cursor = insertPos st
       buf = buffer st
-  put st { buffer = insertCharIntoBuffer buf cursor c,
-           cursorPos = advance cursor }
+  in st { buffer = insertCharIntoBuffer buf cursor c,
+          cursorPos = advance cursor }
 
-deleteChar :: Event -> SimpleEditorAction
-deleteChar _ = modify $ \st ->
+deleteChar :: SimpleEditor -> SimpleEditor
+deleteChar st =
   let cursor = insertPos st
       buf = buffer st
   in st { buffer = deleteCharFromBuffer buf cursor,
           cursorPos = retreat cursor }
 
-insertLinebreak :: Event -> SimpleEditorAction
-insertLinebreak _ = do
-  st <- get
+insertLinebreak :: SimpleEditor -> SimpleEditor
+insertLinebreak st =
   let cursor = insertPos st
       buf = buffer st
-  put $ st { buffer = insertLinebreakIntoBuffer buf cursor,
-             cursorPos = Pos { line = (line cursor) + 1,
-                                row = 0 } }
+  in st { buffer = insertLinebreakIntoBuffer buf cursor,
+          cursorPos = Pos { line = (line cursor) + 1,
+                            row = 0 } }
 
-cursorDown _ = modify $ \ed ->
+fixScroll ed =
+  let cp = cursorPos ed
+      l  = line cp
+      ls = lineScroll ed
+      h  = viewHeight ed
+      isBefore = l  < ls
+      isAfter  = l >= ls + h
+      newLineScroll
+        | isBefore  = l
+        | isAfter   = l - h + 1
+        | otherwise = ls
+  in ed { lineScroll = newLineScroll }
+
+cursorDown ed =
   let cp = cursorPos ed
       nextLinePos = min (lastLineIdx $ buffer ed) (line cp + 1)
   in ed { cursorPos = cp { line = nextLinePos }}
 
-cursorUp _ = modify $ \ed ->
+cursorUp ed =
   let cp = cursorPos ed
       nextLinePos = max 0 (line cp - 1)
   in ed { cursorPos = cp { line = nextLinePos }}
 
-cursorLeft _ = modify $ \ed ->
+cursorLeft ed =
   let cp = cursorPos ed
       nextRowPos = max 0 (row cp - 1)
   in ed { cursorPos = cp { row = nextRowPos }}
 
-cursorRight _ = modify $ \ed ->
+cursorRight ed =
   let cp = cursorPos ed
       nextRowPos = min (length $ lineAt (line cp) (buffer ed)) (row cp + 1)
   in ed { cursorPos = cp { row = nextRowPos }}
 
-handleOther evt = case evt of
-  KeyEvent (KeyChar c) -> insertChar c
-  otherwise -> return ()
+cursorEndOfLine ed =
+  let cp = cursorPos ed
+      nextRowPos = (length $ lineAt (line cp) (buffer ed))
+  in ed { cursorPos = cp { row = nextRowPos }}
 
+cursorBeginningOfLine ed = ed { cursorPos = (cursorPos ed) { row = 0}}
+
+ignoreEvt :: (SimpleEditor -> SimpleEditor) -> Event -> SimpleEditor -> SimpleEditor
+ignoreEvt f evt ed = f ed
+
+ie = ignoreEvt
+
+handleOther evt st = case evt of
+  KeyEvent (KeyChar c) -> insertChar c st
+  otherwise -> st
+
+evtMap :: DefaultMap Event (Event -> SimpleEditor -> SimpleEditor)
 evtMap = defaultMapFromList [
-  (KeyEvent KeyUp, cursorUp),
-  (KeyEvent KeyDown, cursorDown),
-  (KeyEvent KeyLeft, cursorLeft),
-  (KeyEvent KeyRight, cursorRight),
-  (KeyEvent KeyEnter, insertLinebreak),
-  (KeyEvent KeyDel, deleteChar)
+  (KeyEvent KeyUp,             ie (fixScroll . cursorUp)),
+  (KeyEvent KeyDown,           ie (fixScroll . cursorDown)),
+  (KeyEvent KeyLeft,           ie cursorLeft),
+  (KeyEvent KeyRight,          ie cursorRight),
+  (KeyEvent KeyEnter,          ie (fixScroll . insertLinebreak)),
+  (KeyEvent KeyDel,            ie deleteChar),
+  (KeyEvent $ KeyCtrlChar 'A', ie cursorBeginningOfLine),
+  (KeyEvent $ KeyCtrlChar 'E', ie cursorEndOfLine)
   ] handleOther
 
 
 simpleEditorFromFile :: String -> IO (SimpleEditor)
 simpleEditorFromFile filename = do
   s <- DTIO.readFile filename
-  return $ SimpleEditor (strToBuffer (DT.unpack s)) (Pos 0 0) filename
+  let buf = strToBuffer (DT.unpack s)
+  return $ defaultSimpleEditor { buffer = buf }
 
 renderEditor :: Editor a => Box -> a -> IO ()
 renderEditor b@(Box _ _ height width) editor =

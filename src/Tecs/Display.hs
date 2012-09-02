@@ -25,6 +25,8 @@ withCurses f = do
   C.echo False
   C.keypad C.stdScr True
   C.nl True
+  (y, x) <- getScreenSize
+  C.move (y-1) (x-1)
   f
   C.endWin
   CH.end
@@ -40,12 +42,11 @@ clamp low high = max low . min high
 refresh = C.refresh
 
 cursesKeyToEvt :: C.Key -> Event
-cursesKeyToEvt (C.KeyChar '\ESC') = KeyEvent KeyEscape
 cursesKeyToEvt (C.KeyChar '\n')   = KeyEvent KeyEnter
 cursesKeyToEvt (C.KeyChar '\DEL') = KeyEvent KeyDel
 cursesKeyToEvt (C.KeyChar c)
-  | (ord c) > 32 = KeyEvent $ KeyChar c
-  | otherwise    = KeyEvent $ KeyCtrlChar (chr ((ord c) .|. (2 ^ 6)))
+  | (ord c) >= 32 = KeyEvent $ KeyChar c
+  | otherwise     = KeyEvent $ KeyCtrlChar (chr ((ord c) .|. (2 ^ 6)))
 cursesKeyToEvt C.KeyUp            = KeyEvent KeyUp
 cursesKeyToEvt C.KeyDown          = KeyEvent KeyDown
 cursesKeyToEvt C.KeyLeft          = KeyEvent KeyLeft
@@ -112,8 +113,10 @@ drawToScreen (Box top left height width) command =
     SetCursor (Pos line row) -> C.move (top + (clamp 0 height line))
                                        (left + (clamp 0 width row))
     PrintStr (Pos line row) str -> do
-      let realLine = line + top
-          realRow  = row + left
+      let realLine  = line + top
+          realRow   = row + left
+          realWidth = width - realRow
+          realStr   = take realWidth (str ++ (repeat ' '))
       C.move realLine realRow
-      C.wAddStr C.stdScr str
+      C.wAddStr C.stdScr realStr
       return ()
