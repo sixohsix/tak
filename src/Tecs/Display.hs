@@ -8,7 +8,8 @@ import Control.Monad.Writer
 import Data.Char (ord, chr)
 import System.Locale.SetLocale
 import qualified Data.ByteString as B
-import qualified Data.ByteString.UTF8 as U
+import qualified Data.Text as DT
+import qualified Data.Text.Encoding as DTE
 import Foreign.C.Types (CInt)
 
 import Tecs.Types
@@ -89,21 +90,13 @@ waitEvent = let
       if isValidNextKey key
         then decodeAfterNMore (nBytes - 1) (ints ++ [key])
         else decodeKey key
-    else case (U.decode . cIntToBs) ints of
-      Just (c, _) -> return $ C.KeyChar c
+    else case (DT.unpack . DTE.decodeUtf8 . cIntToBs) ints of
+      c:_         -> return $ C.KeyChar c
       otherwise   -> return $ C.decodeKey (ints !! 0)
   in do
     firstKeyCInt <- getNextKey
     utf8DecodedKey <- decodeKey firstKeyCInt
     return $ cursesKeyToEvt utf8DecodedKey
-
-
-csi = "\ESC["
-
-ansiMoveCursor y x = csi ++ (show (y+1)) ++ ";" ++ (show (x+1)) ++ "H"
-ansiClearScreen    = csi ++ "2J"
-ansiEchoOff        = csi ++ "12h"
-ansiEchoOn         = csi ++ "12l"
 
 printStr :: Pos -> String -> RenderW ()
 printStr p s = RenderW ((), [PrintStr p s])

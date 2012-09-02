@@ -3,7 +3,8 @@
 module Tecs.Editor where
 
 import Prelude as P
-import qualified System.IO.UTF8 as UTF8
+import qualified Data.Text as DT
+import qualified Data.Text.IO as DTIO
 
 
 import Tecs.Types as TT
@@ -97,8 +98,8 @@ evtMap = defaultMapFromList [
 
 simpleEditorFromFile :: String -> IO (SimpleEditor)
 simpleEditorFromFile filename = do
-  s <- UTF8.readFile filename
-  return $ SimpleEditor (strToBuffer s) (Pos 0 0) filename
+  s <- DTIO.readFile filename
+  return $ SimpleEditor (strToBuffer (DT.unpack s)) (Pos 0 0) filename
 
 renderEditor :: Editor a => Box -> a -> IO ()
 renderEditor b@(Box _ _ height width) editor =

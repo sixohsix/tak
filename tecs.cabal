@@ -16,4 +16,4 @@ Executable tes
                , hscurses
                , setlocale >= 0.0.3
                , mtl >= 2
-               , utf8-string >= 0.3.7
+               , text >= 0.11
