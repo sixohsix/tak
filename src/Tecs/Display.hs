@@ -57,8 +57,6 @@ cursesKeyToEvt _                  = NoEvent
 
 waitEvent :: IO (Event)
 waitEvent = let
-  cIntToInt = fromIntegral . toInteger
-
   isValidFirstKey key =
     key <= 255
 
@@ -75,10 +73,7 @@ waitEvent = let
   cIntToBs :: [CInt] -> B.ByteString
   cIntToBs l = B.pack $ map (fromIntegral . toInteger) l
 
-  getNextKey = do
-    k <- C.getch
-    --C.refresh
-    return k
+  getNextKey = C.getch
 
   decodeKey :: CInt -> IO (C.Key)
   decodeKey firstKey =
@@ -94,11 +89,17 @@ waitEvent = let
       if isValidNextKey key
         then decodeAfterNMore (nBytes - 1) (ints ++ [key])
         else decodeKey key
-    else case (DTE.decodeUtf8' . cIntToBs) ints of
+    else decodeInts ints
+
+  decodeInts :: [CInt] -> IO (C.Key)
+  decodeInts ints =
+    let doYourBest = return $ C.decodeKey (ints !! 0)
+    in case (DTE.decodeUtf8' . cIntToBs) ints of
       Right bs  -> case DT.unpack bs of
         c:_         -> return $ C.KeyChar c
-        otherwise   -> return $ C.decodeKey (ints !! 0)
-      otherwise -> return $ C.decodeKey (ints !! 0)
+        otherwise   -> doYourBest
+      otherwise -> doYourBest
+
   in do
     firstKeyCInt <- getNextKey
     utf8DecodedKey <- decodeKey firstKeyCInt

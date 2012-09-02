@@ -15,6 +15,7 @@ import Tecs.Display
 import Control.Monad.State
 
 data SimpleEditor = SimpleEditor {
+  undoBuffers :: [(Buffer, Pos)],
   buffer :: Buffer,
   cursorPos :: Pos,
   fileName :: String,
@@ -23,7 +24,7 @@ data SimpleEditor = SimpleEditor {
   }
 defaultSimpleEditor :: SimpleEditor
 defaultSimpleEditor =
-  SimpleEditor (strToBuffer "") (Pos 0 0) "" 0 24
+  SimpleEditor [] (strToBuffer "") (Pos 0 0) "" 0 24
 
 instance Editor SimpleEditor where
   render editor height width = do
@@ -34,6 +35,19 @@ instance Editor SimpleEditor where
 
 
 type SimpleEditorAction = State SimpleEditor ()
+
+pushUndo :: SimpleEditor -> SimpleEditor
+pushUndo st =
+  st { undoBuffers = (buffer st, cursorPos st):(undoBuffers st)}
+
+popUndo :: SimpleEditor -> SimpleEditor
+popUndo st =
+  let (lastBuf, lastPos) = (undoBuffers st) !! 0
+  in if not $ null (undoBuffers st)
+     then st { buffer = lastBuf,
+               cursorPos = lastPos,
+               undoBuffers = drop 1 (undoBuffers st) }
+     else st
 
 insertPos :: SimpleEditor -> Pos
 insertPos se = let cPos = cursorPos se
@@ -56,23 +70,29 @@ insertChar :: Char -> SimpleEditor -> SimpleEditor
 insertChar c st =
   let cursor = insertPos st
       buf = buffer st
-  in st { buffer = insertCharIntoBuffer buf cursor c,
-          cursorPos = advance cursor }
+  in (pushUndo st) { buffer = insertCharIntoBuffer buf cursor c,
+                     cursorPos = advance cursor }
+
+insertTab :: SimpleEditor -> SimpleEditor
+insertTab st =
+  let insertSpace = insertChar ' '
+  in insertSpace $ insertSpace st
 
 deleteChar :: SimpleEditor -> SimpleEditor
 deleteChar st =
   let cursor = insertPos st
       buf = buffer st
-  in st { buffer = deleteCharFromBuffer buf cursor,
-          cursorPos = retreat cursor }
+  in (pushUndo st) { buffer = deleteCharFromBuffer buf cursor,
+                     cursorPos = retreat cursor }
 
 insertLinebreak :: SimpleEditor -> SimpleEditor
 insertLinebreak st =
   let cursor = insertPos st
       buf = buffer st
-  in st { buffer = insertLinebreakIntoBuffer buf cursor,
-          cursorPos = Pos { line = (line cursor) + 1,
-                            row = 0 } }
+  in fixScroll $ (pushUndo st) {
+    buffer = insertLinebreakIntoBuffer buf cursor,
+    cursorPos = Pos { line = (line cursor) + 1,
+                      row = 0 } }
 
 fixScroll ed =
   let cp = cursorPos ed
@@ -90,12 +110,12 @@ fixScroll ed =
 cursorDown ed =
   let cp = cursorPos ed
       nextLinePos = min (lastLineIdx $ buffer ed) (line cp + 1)
-  in ed { cursorPos = cp { line = nextLinePos }}
+  in fixScroll $ ed { cursorPos = cp { line = nextLinePos }}
 
 cursorUp ed =
   let cp = cursorPos ed
       nextLinePos = max 0 (line cp - 1)
-  in ed { cursorPos = cp { line = nextLinePos }}
+  in fixScroll $ ed { cursorPos = cp { line = nextLinePos }}
 
 cursorLeft ed =
   let cp = cursorPos ed
@@ -112,12 +132,15 @@ cursorEndOfLine ed =
       nextRowPos = (length $ lineAt (line cp) (buffer ed))
   in ed { cursorPos = cp { row = nextRowPos }}
 
-cursorBeginningOfLine ed = ed { cursorPos = (cursorPos ed) { row = 0}}
+cursorBeginningOfLine ed = ed { cursorPos = (cursorPos ed) { row = 0 } }
 
 ignoreEvt :: (SimpleEditor -> SimpleEditor) -> Event -> SimpleEditor -> SimpleEditor
 ignoreEvt f evt ed = f ed
 
 ie = ignoreEvt
+
+undo :: SimpleEditor -> SimpleEditor
+undo = fixScroll . popUndo
 
 handleOther evt st = case evt of
   KeyEvent (KeyChar c) -> insertChar c st
@@ -125,14 +148,16 @@ handleOther evt st = case evt of
 
 evtMap :: DefaultMap Event (Event -> SimpleEditor -> SimpleEditor)
 evtMap = defaultMapFromList [
-  (KeyEvent KeyUp,             ie (fixScroll . cursorUp)),
-  (KeyEvent KeyDown,           ie (fixScroll . cursorDown)),
+  (KeyEvent KeyUp,             ie cursorUp),
+  (KeyEvent KeyDown,           ie cursorDown),
   (KeyEvent KeyLeft,           ie cursorLeft),
   (KeyEvent KeyRight,          ie cursorRight),
-  (KeyEvent KeyEnter,          ie (fixScroll . insertLinebreak)),
+  (KeyEvent KeyEnter,          ie insertLinebreak),
   (KeyEvent KeyDel,            ie deleteChar),
   (KeyEvent $ KeyCtrlChar 'A', ie cursorBeginningOfLine),
-  (KeyEvent $ KeyCtrlChar 'E', ie cursorEndOfLine)
+  (KeyEvent $ KeyCtrlChar 'E', ie cursorEndOfLine),
+  (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
+  (KeyEvent $ KeyCtrlChar 'Z', ie undo)
   ] handleOther
 
 
