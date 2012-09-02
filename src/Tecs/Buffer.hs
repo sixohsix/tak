@@ -10,6 +10,9 @@ import Tecs.Types as TT
 import Tecs.Display
 import Tecs.Text
 
+empty :: Buffer
+empty = Buffer (Seq.fromList [])
+
 strToBuffer :: String -> Buffer
 strToBuffer s = Buffer (Seq.fromList (lines s))
 

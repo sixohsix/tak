@@ -11,7 +11,7 @@ import Tecs.Text
 import Tecs.Buffer
 import Tecs.Display
 
-import Control.Monad.State.Lazy
+import Control.Monad.State
 
 data SimpleEditor = SimpleEditor {
   buffer :: Buffer,
@@ -24,6 +24,7 @@ instance Editor SimpleEditor where
     renderBuffer Crop (buffer editor) height width
     setCursor (insertPos editor)
   respond editor evt = execState ((lookupWithDefault evtMap evt) evt) editor
+
 
 type SimpleEditorAction = State SimpleEditor ()
 

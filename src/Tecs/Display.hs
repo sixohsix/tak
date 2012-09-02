@@ -35,10 +35,6 @@ clamp low high = max low . min high
 
 refresh = C.refresh
 
-nextKey = CH.getKey C.refresh
-
-charAsUtf8 c = maybe '?' fst (U.uncons $ U.fromString $ c:"")
-
 cursesKeyToEvt :: C.Key -> Event
 cursesKeyToEvt (C.KeyChar '\ESC') = KeyEvent KeyEscape
 cursesKeyToEvt (C.KeyChar '\n')   = KeyEvent KeyEnter
@@ -73,6 +69,11 @@ waitEvent = let
   cIntToBs :: [CInt] -> B.ByteString
   cIntToBs l = U.fromString $ map (chr . fromIntegral . toInteger) l
 
+  getNextKey = do
+    k <- C.getch
+    --C.refresh
+    return k
+
   decodeKey :: CInt -> IO (C.Key)
   decodeKey firstKey =
     if isValidFirstKey firstKey
@@ -83,7 +84,7 @@ waitEvent = let
   decodeAfterNMore nBytes ints =
     if nBytes > 0
     then do
-      key <- C.getch
+      key <- getNextKey
       if isValidNextKey key
         then decodeAfterNMore (nBytes - 1) (ints ++ [key])
         else decodeKey key
@@ -91,10 +92,17 @@ waitEvent = let
       Just (c, _) -> return $ C.KeyChar c
       otherwise   -> return $ C.decodeKey (ints !! 0)
   in do
-    firstKeyCInt <- C.getch
+    firstKeyCInt <- getNextKey
     utf8DecodedKey <- decodeKey firstKeyCInt
     return $ cursesKeyToEvt utf8DecodedKey
 
+
+csi = "\ESC["
+
+ansiMoveCursor y x = csi ++ (show (y+1)) ++ ";" ++ (show (x+1)) ++ "H"
+ansiClearScreen    = csi ++ "2J"
+ansiEchoOff        = csi ++ "12h"
+ansiEchoOn         = csi ++ "12l"
 
 printStr :: Pos -> String -> RenderW ()
 printStr p s = RenderW ((), [PrintStr p s])

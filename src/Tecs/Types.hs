@@ -2,6 +2,8 @@ module Tecs.Types where
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
+import qualified Control.Monad.State as St
+
 
 data Buffer = Buffer {
   lineSeq :: Seq.Seq String
@@ -72,3 +74,11 @@ lookupWithDefault eMap evt =
 class Editor a where
   render :: a -> Int -> Int -> RenderW ()
   respond :: a -> Event -> a
+
+data Ring a = Ring {
+  members :: [a],
+  idx :: Int
+  }
+defaultRing = Ring [] 0
+
+type BufferRing = Ring Buffer
