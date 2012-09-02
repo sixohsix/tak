@@ -94,9 +94,11 @@ waitEvent = let
       if isValidNextKey key
         then decodeAfterNMore (nBytes - 1) (ints ++ [key])
         else decodeKey key
-    else case (DT.unpack . DTE.decodeUtf8 . cIntToBs) ints of
-      c:_         -> return $ C.KeyChar c
-      otherwise   -> return $ C.decodeKey (ints !! 0)
+    else case (DTE.decodeUtf8' . cIntToBs) ints of
+      Right bs  -> case DT.unpack bs of
+        c:_         -> return $ C.KeyChar c
+        otherwise   -> return $ C.decodeKey (ints !! 0)
+      otherwise -> return $ C.decodeKey (ints !! 0)
   in do
     firstKeyCInt <- getNextKey
     utf8DecodedKey <- decodeKey firstKeyCInt

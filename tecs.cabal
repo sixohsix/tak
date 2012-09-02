@@ -12,6 +12,7 @@ Executable tes
   Hs-Source-Dirs: src
   Main-Is: Tecs/Tes.hs
   Build-Depends: base >= 4
+               , bytestring >= 0.9
                , containers >= 0.4
                , hscurses
                , setlocale >= 0.0.3

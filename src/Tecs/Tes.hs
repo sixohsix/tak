@@ -10,7 +10,6 @@ import Tecs.Types
 import Tecs.Display
 import Tecs.Editor
 import Tecs.Buffer
-import Tecs.Str
 
 import Debug.Trace (trace)
 
@@ -51,10 +50,10 @@ handleEvt :: TesState -> Event -> IO TesState
 handleEvt tesState evt = (lookupWithDefault topEvtMap evt) tesState evt
 
 usage :: String
-usage = [str|
-USAGE
-  tes <file>
-|]
+usage = unlines [
+  "USAGE",
+  "  tes <file>"
+  ]
 
 mainLoop tesState = do
   (y, x) <- getScreenSize
