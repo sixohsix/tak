@@ -79,3 +79,12 @@ deleteLine buf idx =
   let seq = lineSeq buf
       (left, right) = Seq.splitAt idx seq
   in buf { lineSeq = (left >< (Seq.drop 1 right)) }
+
+concatLine :: Buffer -> Int -> Buffer
+concatLine buf idx =
+  let seq = lineSeq buf
+      (left, right) = Seq.splitAt (idx - 1) seq
+      concatted = (Seq.index right 0) ++ (Seq.index right 1)
+  in if idx <= 0 || (Seq.length right) < 2
+     then buf
+     else buf { lineSeq = (left |> concatted) >< (Seq.drop 2 right) }

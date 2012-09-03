@@ -81,9 +81,17 @@ insertTab st =
 deleteChar :: SimpleEditor -> SimpleEditor
 deleteChar st =
   let cursor = insertPos st
+      l = line cursor
+      r = row cursor
       buf = buffer st
-  in (pushUndo st) { buffer = deleteCharFromBuffer buf cursor,
-                     cursorPos = retreat cursor }
+      st' = pushUndo st
+  in if r == 0 && l > 0
+     then let concattedBuf = concatLine buf (line cursor)
+              cursRow = length (lineAt (l - 1) concattedBuf)
+          in st' { buffer = concattedBuf,
+                   cursorPos = Pos (l - 1) cursRow }
+     else st' { buffer = deleteCharFromBuffer buf cursor,
+                cursorPos = retreat cursor }
 
 insertLinebreak :: SimpleEditor -> SimpleEditor
 insertLinebreak st =
@@ -126,14 +134,27 @@ cursorUp ed =
   in fixScroll $ ed { cursorPos = cp { line = nextLinePos }}
 
 cursorLeft ed =
-  let cp = cursorPos ed
+  let cp = insertPos ed
+      l = line cp
+      r = row cp
+      lenOfLineBefore = length $ lineAt (l - 1) $ buffer ed
       nextRowPos = max 0 (row cp - 1)
-  in ed { cursorPos = cp { row = nextRowPos }}
+  in if r > 0
+     then ed { cursorPos = cp { row = r - 1 }}
+     else if l > 0
+          then ed { cursorPos = Pos (l - 1) lenOfLineBefore }
+          else ed
 
 cursorRight ed =
-  let cp = cursorPos ed
-      nextRowPos = min (length $ lineAt (line cp) (buffer ed)) (row cp + 1)
-  in ed { cursorPos = cp { row = nextRowPos }}
+  let cp = insertPos ed
+      l = line cp
+      r = row cp
+      lenCurLine = length $ lineAt l $ buffer ed
+  in if r < lenCurLine
+     then ed { cursorPos = cp { row = r + 1 } }
+     else if l < (numLines $ buffer ed)
+          then ed { cursorPos = Pos (l + 1) 0 }
+          else ed
 
 cursorEndOfLine ed =
   let cp = cursorPos ed
