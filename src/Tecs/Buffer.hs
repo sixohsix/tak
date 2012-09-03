@@ -73,3 +73,9 @@ numLines buf = Seq.length (lineSeq buf)
 
 lastLineIdx :: Buffer -> Int
 lastLineIdx buf = (numLines buf) - 1
+
+deleteLine :: Buffer -> Int -> Buffer
+deleteLine buf idx =
+  let seq = lineSeq buf
+      (left, right) = Seq.splitAt idx seq
+  in buf { lineSeq = (left >< (Seq.drop 1 right)) }

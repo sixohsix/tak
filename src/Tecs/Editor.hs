@@ -94,6 +94,14 @@ insertLinebreak st =
     cursorPos = Pos { line = (line cursor) + 1,
                       row = 0 } }
 
+killLine :: SimpleEditor -> SimpleEditor
+killLine st =
+  let buf = buffer st
+      l = (line $ insertPos st)
+  in (pushUndo st) {
+    buffer = deleteLine buf l
+    }
+
 fixScroll ed =
   let cp = cursorPos ed
       l  = line cp
@@ -157,7 +165,8 @@ evtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'A', ie cursorBeginningOfLine),
   (KeyEvent $ KeyCtrlChar 'E', ie cursorEndOfLine),
   (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
-  (KeyEvent $ KeyCtrlChar 'Z', ie undo)
+  (KeyEvent $ KeyCtrlChar 'Z', ie undo),
+  (KeyEvent $ KeyCtrlChar 'K', ie killLine)
   ] handleOther
 
 
@@ -165,7 +174,10 @@ simpleEditorFromFile :: String -> IO (SimpleEditor)
 simpleEditorFromFile filename = do
   s <- DTIO.readFile filename
   let buf = strToBuffer (DT.unpack s)
-  return $ defaultSimpleEditor { buffer = buf }
+  return $ defaultSimpleEditor {
+    buffer = buf,
+    fileName = filename
+    }
 
 renderEditor :: Editor a => Box -> a -> IO ()
 renderEditor b@(Box _ _ height width) editor =
