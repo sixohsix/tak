@@ -54,6 +54,8 @@ data Key = KeyChar Char
          | KeyEscape
          | KeyEnter
          | KeyDel
+         | KeyPageDown
+         | KeyPageUp
            deriving (Show, Eq, Ord)
 data Event = KeyEvent Key
            | NoEvent

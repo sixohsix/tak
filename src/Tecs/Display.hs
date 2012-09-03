@@ -52,6 +52,8 @@ cursesKeyToEvt C.KeyDown          = KeyEvent KeyDown
 cursesKeyToEvt C.KeyLeft          = KeyEvent KeyLeft
 cursesKeyToEvt C.KeyRight         = KeyEvent KeyRight
 cursesKeyToEvt C.KeyEnter         = KeyEvent KeyEnter
+cursesKeyToEvt C.KeyNPage         = KeyEvent KeyPageDown
+cursesKeyToEvt C.KeyPPage         = KeyEvent KeyPageUp
 cursesKeyToEvt _                  = NoEvent
 
 

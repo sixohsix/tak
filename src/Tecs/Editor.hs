@@ -142,7 +142,7 @@ cursorLeft ed =
   in if r > 0
      then ed { cursorPos = cp { row = r - 1 }}
      else if l > 0
-          then ed { cursorPos = Pos (l - 1) lenOfLineBefore }
+          then fixScroll $ ed { cursorPos = Pos (l - 1) lenOfLineBefore }
           else ed
 
 cursorRight ed =
@@ -153,7 +153,7 @@ cursorRight ed =
   in if r < lenCurLine
      then ed { cursorPos = cp { row = r + 1 } }
      else if l < (numLines $ buffer ed)
-          then ed { cursorPos = Pos (l + 1) 0 }
+          then fixScroll $ ed { cursorPos = Pos (l + 1) 0 }
           else ed
 
 cursorEndOfLine ed =
@@ -162,6 +162,19 @@ cursorEndOfLine ed =
   in ed { cursorPos = cp { row = nextRowPos }}
 
 cursorBeginningOfLine ed = ed { cursorPos = (cursorPos ed) { row = 0 } }
+
+cursorPageDown ed =
+  let cp = cursorPos ed
+      l = line cp
+      pageLen = (viewHeight ed) - 3
+      lastBufLineIdx = lastLineIdx $ buffer ed
+  in fixScroll $ ed { cursorPos = cp { line = min (l + pageLen) lastBufLineIdx } }
+
+cursorPageUp ed =
+  let cp = cursorPos ed
+      l = line cp
+      pageLen = (viewHeight ed) - 3
+  in fixScroll $ ed { cursorPos = cp { line = max 0 (l - pageLen) } }
 
 ignoreEvt :: (SimpleEditor -> SimpleEditor) -> Event -> SimpleEditor -> SimpleEditor
 ignoreEvt f evt ed = f ed
@@ -183,6 +196,8 @@ evtMap = defaultMapFromList [
   (KeyEvent KeyRight,          ie cursorRight),
   (KeyEvent KeyEnter,          ie insertLinebreak),
   (KeyEvent KeyDel,            ie deleteChar),
+  (KeyEvent KeyPageDown,       ie cursorPageDown),
+  (KeyEvent KeyPageUp,         ie cursorPageUp),
   (KeyEvent $ KeyCtrlChar 'A', ie cursorBeginningOfLine),
   (KeyEvent $ KeyCtrlChar 'E', ie cursorEndOfLine),
   (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
