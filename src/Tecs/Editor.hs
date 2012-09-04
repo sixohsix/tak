@@ -5,7 +5,7 @@ module Tecs.Editor where
 import Prelude as P
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTIO
-
+import System.Directory (doesFileExist)
 
 import Tecs.Types as TT
 import Tecs.Text
@@ -212,7 +212,10 @@ evtMap = defaultMapFromList [
 
 simpleEditorFromFile :: String -> IO (SimpleEditor)
 simpleEditorFromFile filename = do
-  s <- DTIO.readFile filename
+  fileExists <- doesFileExist filename
+  s <- if fileExists
+       then DTIO.readFile filename
+       else return DT.empty
   let buf = strToBuffer (DT.unpack s)
   return $ defaultSimpleEditor {
     buffer = buf,
@@ -238,3 +241,4 @@ setInfoLineContent infoLineEditor str =
   infoLineEditor { infoBuffer = strToBuffer str }
 
 defaultInfoLineEditor = InfoLineEditor $ strToBuffer ""
+

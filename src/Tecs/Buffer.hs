@@ -3,7 +3,8 @@
 module Tecs.Buffer where
 
 import Prelude as P
-import Data.Sequence as Seq
+import Data.Sequence ((><), (|>), (<|))
+import qualified Data.Sequence as Seq
 import Data.Foldable (toList)
 
 import Tecs.Types as TT
@@ -11,10 +12,16 @@ import Tecs.Display
 import Tecs.Text
 
 empty :: Buffer
-empty = Buffer (Seq.fromList [])
+empty = Buffer (Seq.fromList [""])
+
+handleEmptySeq :: Buffer -> Buffer
+handleEmptySeq buf =
+  if (lineSeq buf) == Seq.empty
+  then empty
+  else buf
 
 strToBuffer :: String -> Buffer
-strToBuffer s = Buffer (Seq.fromList (lines s))
+strToBuffer s = handleEmptySeq $ Buffer (Seq.fromList (lines s))
 
 bufferToStr :: Buffer -> String
 bufferToStr buf = unlines $ bufferToLines buf
@@ -27,7 +34,7 @@ lineAt x buf = Seq.index (lineSeq buf) x
 
 bufferDropLines :: Int -> Buffer -> Buffer
 bufferDropLines lines buffer =
-  Buffer $ Seq.drop lines (lineSeq buffer)
+  handleEmptySeq $ Buffer $ Seq.drop lines (lineSeq buffer)
 
 renderBuffer :: WrapMode -> Buffer -> Int -> Int -> RenderW ()
 renderBuffer wrapMode buffer height width =
@@ -41,20 +48,20 @@ renderBuffer wrapMode buffer height width =
 insertCharIntoBuffer :: Buffer -> Pos -> Char -> Buffer
 insertCharIntoBuffer buf (Pos y x) char =
   let seq = lineSeq buf
-      line = index seq y
+      line = Seq.index seq y
       (before, after) = P.splitAt x line
-  in buf { lineSeq = update y (before ++ [char] ++ after) seq }
+  in buf { lineSeq = Seq.update y (before ++ [char] ++ after) seq }
 
 
 deleteCharFromBuffer :: Buffer -> Pos -> Buffer
 deleteCharFromBuffer buf (Pos y x) =
   let seq = lineSeq buf
-      line = index seq y
+      line = Seq.index seq y
       (before, after) = P.splitAt x line
       newBefore = if not $ P.null before
                   then P.take (P.length before - 1) before
                   else before
-  in buf { lineSeq = update y (newBefore ++ after) seq}
+  in buf { lineSeq = Seq.update y (newBefore ++ after) seq}
 
 insertLinebreakIntoBuffer :: Buffer -> Pos -> Buffer
 insertLinebreakIntoBuffer buf (Pos y x) =
@@ -67,7 +74,6 @@ insertLinebreakIntoBuffer buf (Pos y x) =
       seqMiddle = Seq.fromList [before, after]
   in buf { lineSeq = (seqBefore >< seqMiddle >< seqAfter) }
 
-
 numLines :: Buffer -> Int
 numLines buf = Seq.length (lineSeq buf)
 
@@ -78,7 +84,7 @@ deleteLine :: Buffer -> Int -> Buffer
 deleteLine buf idx =
   let seq = lineSeq buf
       (left, right) = Seq.splitAt idx seq
-  in buf { lineSeq = (left >< (Seq.drop 1 right)) }
+  in handleEmptySeq $ buf { lineSeq = (left >< (Seq.drop 1 right)) }
 
 concatLine :: Buffer -> Int -> Buffer
 concatLine buf idx =

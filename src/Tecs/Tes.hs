@@ -79,8 +79,12 @@ mainLoop tesState = do
 
 main = do
   args <- getArgs
+  startEditor args
+
+startEditor args = do
   if null args
     then putStrLn usage
     else do editor <- simpleEditorFromFile (args !! 0)
             withCurses $ mainLoop (defaultTesState editor)
   return ()
+
