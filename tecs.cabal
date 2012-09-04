@@ -3,7 +3,7 @@ Version:0.1
 Cabal-Version: >= 1.2
 License:MIT
 Author:Mike Verdone
-Homepage:
+Homepage:http://mike.verdone.ca/
 Category:
 Synopsis:A text editor
 Build-Type: Simple
@@ -14,6 +14,7 @@ Executable tes
   Build-Depends: base >= 4
                , bytestring >= 0.9
                , containers >= 0.4
+               , directory >= 1.1.0
                , hscurses
                , setlocale >= 0.0.3
                , mtl >= 2
