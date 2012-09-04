@@ -39,7 +39,7 @@ topEvtMap =
         (KeyEvent $ KeyCtrlChar 'S', \st _ -> do
             let ed = editor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
-            return st
+            return st { editor = ed { lastSavePtr = 0 } }
             )
         ]
   in DefaultMap m (\ts ev -> do let ts' = forwardEvtToEditor ts ev
@@ -55,11 +55,21 @@ usage = unlines [
   "  tes <file>"
   ]
 
+infoLineContentFor tesState =
+  let ed = editor tesState
+      modStr = if isModified ed
+               then "*"
+               else " "
+      fn     = fileName ed
+  in "  " ++ modStr ++ "  " ++ fn
+
 mainLoop tesState = do
   (y, x) <- getScreenSize
-  let tesState' = tesState { editor = (editor tesState) { viewHeight = y - 1 } }
-  renderEditor (Box 0       0 (y - 1) x) (editor tesState')
+  let infoL     = infoLine tesState
+      tesState' = tesState { editor = (editor tesState) { viewHeight = y - 1 },
+                             infoLine = setInfoLineContent infoL (infoLineContentFor tesState) }
   renderEditor (Box (y - 1) 0      1  x) (infoLine tesState')
+  renderEditor (Box 0       0 (y - 2) x) (editor tesState')
   refresh
   evt <- waitEvent
   nextTesState <- handleEvt tesState' evt

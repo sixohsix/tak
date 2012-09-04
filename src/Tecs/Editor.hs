@@ -16,6 +16,7 @@ import Control.Monad.State
 
 data SimpleEditor = SimpleEditor {
   undoBuffers :: [(Buffer, Pos)],
+  lastSavePtr :: Int,
   buffer :: Buffer,
   cursorPos :: Pos,
   fileName :: String,
@@ -24,7 +25,7 @@ data SimpleEditor = SimpleEditor {
   }
 defaultSimpleEditor :: SimpleEditor
 defaultSimpleEditor =
-  SimpleEditor [] (strToBuffer "") (Pos 0 0) "" 0 24
+  SimpleEditor [] 0 (strToBuffer "") (Pos 0 0) "" 0 24
 
 instance Editor SimpleEditor where
   render editor height width = do
@@ -33,12 +34,12 @@ instance Editor SimpleEditor where
     setCursor (screenPos editor)
   respond editor evt = (lookupWithDefault evtMap evt) evt editor
 
-
 type SimpleEditorAction = State SimpleEditor ()
 
 pushUndo :: SimpleEditor -> SimpleEditor
 pushUndo st =
-  st { undoBuffers = (buffer st, cursorPos st):(undoBuffers st)}
+  st { undoBuffers = (buffer st, cursorPos st):(undoBuffers st),
+       lastSavePtr = (lastSavePtr st) + 1 }
 
 popUndo :: SimpleEditor -> SimpleEditor
 popUndo st =
@@ -46,8 +47,12 @@ popUndo st =
   in if not $ null (undoBuffers st)
      then st { buffer = lastBuf,
                cursorPos = lastPos,
-               undoBuffers = drop 1 (undoBuffers st) }
+               undoBuffers = drop 1 (undoBuffers st),
+               lastSavePtr = (lastSavePtr st) - 1 }
      else st
+
+isModified :: SimpleEditor -> Bool
+isModified ed = (lastSavePtr ed) /= 0
 
 insertPos :: SimpleEditor -> Pos
 insertPos se = let cPos = cursorPos se
@@ -138,7 +143,6 @@ cursorLeft ed =
       l = line cp
       r = row cp
       lenOfLineBefore = length $ lineAt (l - 1) $ buffer ed
-      nextRowPos = max 0 (row cp - 1)
   in if r > 0
      then ed { cursorPos = cp { row = r - 1 }}
      else if l > 0

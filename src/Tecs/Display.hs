@@ -114,14 +114,18 @@ setCursor p = RenderW ((), [SetCursor p])
 
 drawToScreen :: Box -> RenderAction -> IO ()
 drawToScreen (Box top left height width) command =
-  case command of
-    SetCursor (Pos line row) -> C.move (top + (clamp 0 height line))
-                                       (left + (clamp 0 width row))
-    PrintStr (Pos line row) str -> do
-      let realLine  = line + top
-          realRow   = row + left
-          realWidth = width - realRow
-          realStr   = take realWidth (str ++ (repeat ' '))
-      C.move realLine realRow
-      C.wAddStr C.stdScr realStr
-      return ()
+  let clampLine = clamp top  (top  + height - 1)
+      clampRow  = clamp left (left + width - 1)
+  in
+    case command of
+      SetCursor (Pos line row) -> C.move (clampLine (top + line))
+                                         (clampRow  (left + row))
+      PrintStr (Pos line row) str -> do
+        let realLine  = line + top
+            realRow   = row + left
+            realWidth = width - realRow - 1
+            realStr   = take realWidth (str ++ (repeat ' '))
+        C.move (clampLine realLine) (clampRow realRow)
+        C.wAddStr C.stdScr realStr
+        return ()
+
