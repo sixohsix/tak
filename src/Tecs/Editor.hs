@@ -156,7 +156,7 @@ cursorRight ed =
       lenCurLine = length $ lineAt l $ buffer ed
   in if r < lenCurLine
      then ed { cursorPos = cp { row = r + 1 } }
-     else if l < (numLines $ buffer ed)
+     else if l < (lastLineIdx $ buffer ed)
           then fixScroll $ ed { cursorPos = Pos (l + 1) 0 }
           else ed
 
