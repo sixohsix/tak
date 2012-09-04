@@ -222,14 +222,15 @@ simpleEditorFromFile filename = do
 renderEditor :: Editor a => Box -> a -> IO ()
 renderEditor b@(Box _ _ height width) editor =
   let (_, commands) = execRender (render editor height width)
-  in do mapM (drawToScreen b) commands
+  in do mapM (drawToScreen b) ([SetColorPair 0] ++ commands)
         return ()
 
 data InfoLineEditor = InfoLineEditor {
   infoBuffer :: Buffer
   }
 instance Editor InfoLineEditor where
-  render editor height width =
+  render editor height width = do
+    invertText
     renderBuffer Crop (infoBuffer editor) height width
   respond editor evt = editor
 

@@ -32,6 +32,7 @@ data Pos = Pos {
 
 data RenderAction = PrintStr Pos String
                   | SetCursor Pos
+                  | SetColorPair Int
                   deriving (Show)
 
 type RenderActions = [RenderAction]

@@ -25,6 +25,7 @@ withCurses f = do
   C.echo False
   C.keypad C.stdScr True
   C.nl True
+  C.initPair (C.Pair 1024) CH.black CH.white
   (y, x) <- getScreenSize
   C.move (y-1) (x-1)
   f
@@ -111,6 +112,10 @@ printStr :: Pos -> String -> RenderW ()
 printStr p s = RenderW ((), [PrintStr p s])
 setCursor :: Pos -> RenderW ()
 setCursor p = RenderW ((), [SetCursor p])
+regularText :: RenderW ()
+regularText = RenderW ((), [SetColorPair 0])
+invertText :: RenderW ()
+invertText = RenderW ((), [SetColorPair 1024])
 
 drawToScreen :: Box -> RenderAction -> IO ()
 drawToScreen (Box top left height width) command =
@@ -118,6 +123,7 @@ drawToScreen (Box top left height width) command =
       clampRow  = clamp left (left + width - 1)
   in
     case command of
+      SetColorPair pairId -> C.attrSet C.attr0 (C.Pair pairId)
       SetCursor (Pos line row) -> C.move (clampLine (top + line))
                                          (clampRow  (left + row))
       PrintStr (Pos line row) str -> do

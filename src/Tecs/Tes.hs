@@ -69,7 +69,7 @@ mainLoop tesState = do
       tesState' = tesState { editor = (editor tesState) { viewHeight = y - 1 },
                              infoLine = setInfoLineContent infoL (infoLineContentFor tesState) }
   renderEditor (Box (y - 1) 0      1  x) (infoLine tesState')
-  renderEditor (Box 0       0 (y - 2) x) (editor tesState')
+  renderEditor (Box 0       0 (y - 1) x) (editor tesState')
   refresh
   evt <- waitEvent
   nextTesState <- handleEvt tesState' evt
