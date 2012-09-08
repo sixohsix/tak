@@ -56,7 +56,7 @@ isModified ed = (lastSavePtr ed) /= 0
 
 insertPos :: SimpleEditor -> Pos
 insertPos se = let cPos = cursorPos se
-                   l = line cPos
+                   l = min (line cPos) (lastLineIdx (buffer se))
                    r = min (row cPos) (length $ lineAt l $ buffer se)
                in Pos l r
 
