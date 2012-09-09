@@ -13,14 +13,6 @@ import Tecs.Buffer
 
 import Debug.Trace (trace)
 
-data TesState = TesState {
-  shouldQuit :: Bool,
-  editor :: SimpleEditor,
-  infoLine :: InfoLineEditor
-  }
-defaultTesState =
-  TesState False defaultSimpleEditor defaultInfoLineEditor
-
 forwardEvtToEditor tesState evt =
   tesState { editor = respond (editor tesState) evt }
 

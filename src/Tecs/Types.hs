@@ -93,10 +93,21 @@ defaultSimpleEditor :: SimpleEditor
 defaultSimpleEditor =
   SimpleEditor [] 0 defaultBuffer (Pos 0 0) "" 0 24
 
+data InfoLineEditor = InfoLineEditor {
+  infoBuffer :: Buffer
+  }
+defaultInfoLineEditor = InfoLineEditor defaultBuffer
+
 data Ring a = Ring {
   members :: [a],
   idx :: Int
   }
 defaultRing = Ring [] 0
 
-type BufferRing = Ring Buffer
+data TesState = TesState {
+  shouldQuit :: Bool,
+  editor :: SimpleEditor,
+  infoLine :: InfoLineEditor
+  }
+defaultTesState =
+  TesState False defaultSimpleEditor defaultInfoLineEditor

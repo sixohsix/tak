@@ -65,9 +65,6 @@ simpleEditorFromFile filename = do
     fileName = filename
     }
 
-data InfoLineEditor = InfoLineEditor {
-  infoBuffer :: Buffer
-  }
 instance Editor InfoLineEditor where
   render editor height width = do
     invertText
@@ -76,6 +73,4 @@ instance Editor InfoLineEditor where
 
 setInfoLineContent infoLineEditor str =
   infoLineEditor { infoBuffer = strToBuffer str }
-
-defaultInfoLineEditor = InfoLineEditor defaultBuffer
 
