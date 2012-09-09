@@ -50,8 +50,10 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
   (KeyEvent $ KeyCtrlChar 'K', ie killLine),
   (KeyEvent $ KeyCtrlChar '@', ie startOrFinishOrCancelSelecting),
-  (KeyEvent $ KeyCtrlChar 'X', ie deleteSelection),
-  (KeyEvent $ KeyCtrlChar 'G', ie forgetOpenRangeOrRanges)
+  (KeyEvent $ KeyCtrlChar 'X', copyReasonableSelection >>= (ie deleteSelection)),
+  (KeyEvent $ KeyCtrlChar 'C', copyReasonableSelection),
+  (KeyEvent $ KeyCtrlChar 'G', ie forgetOpenRangeOrRanges),
+  (KeyEvent $ KeyCtrlChar 'V', pasteAtInsertPos)
   ] (\_ -> handleOther)
 
 

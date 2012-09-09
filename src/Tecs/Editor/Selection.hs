@@ -74,3 +74,29 @@ forgetOpenRangeOrRanges st =
   in case openRange selSt of
     Just _    -> forgetOpenRange st
     otherwise -> forgetRanges st
+
+copyReasonableSelection :: GlobalState -> Event -> IO GlobalState
+copyReasonableSelection gst _ =
+  let ed    = finishSelecting (editor gst)
+      selSt = selState ed
+      sel   = (ranges selSt) !! 0
+      buf   = buffer ed
+  in if null (ranges selSt)
+     then return gst
+     else return $ gst { clipboard = (getSelection buf sel):(clipboard gst),
+                         editor = ed }
+
+cutReasonableSelection :: GlobalState -> Event -> IO GlobalState
+cutReasonableSelection gst _ =
+  -- TODO  
+
+pasteAtInsertPos :: GlobalState -> Event -> IO GlobalState
+pasteAtInsertPos gst _
+  | null (clipboard gst) = return gst
+  | otherwise =
+      let ed = editor gst
+          buf = buffer ed
+          iPos = insertPos ed
+          pasteSeq = (clipboard gst) !! 0
+      in return $ gst { editor = ed { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq } }
+

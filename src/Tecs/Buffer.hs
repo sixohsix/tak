@@ -103,7 +103,7 @@ concatLine buf idx =
      then buf
      else buf { lineSeq = (left |> concatted) >< (Seq.drop 2 right) }
 
-getSelection :: Buffer -> (Pos, Pos) -> Buffer
+getSelection :: Buffer -> (Pos, Pos) -> Seq.Seq String
 getSelection buf (start, end) =
   let realStart = posWithinBuffer buf start
       realEnd   = posWithinBuffer buf end
@@ -111,7 +111,7 @@ getSelection buf (start, end) =
       firstLine = lineAt (line realStart) buf
   in if isOneLine
      then let nMidChars = (row realEnd) - (row realStart)
-          in Buffer $ Seq.singleton $ P.take nMidChars $ P.drop (row realStart) firstLine
+          in Seq.singleton $ P.take nMidChars $ P.drop (row realStart) firstLine
      else let lastLine  = lineAt (line realEnd) buf
               nMidLines = (line realEnd) - (line realStart)
               firstMidlineIdx = (line realStart) + 1
@@ -119,7 +119,7 @@ getSelection buf (start, end) =
               midLines  = Seq.take nMidLines $ Seq.drop firstMidlineIdx seq
               cFirstLine = P.drop (row realStart) firstLine
               cLastLine  = P.take (row realEnd) lastLine
-          in Buffer (((cFirstLine <| midLines) |> cLastLine))
+          in (((cFirstLine <| midLines) |> cLastLine))
 
 delSelection :: Buffer -> (Pos, Pos) -> Buffer
 delSelection buf (start, end) =

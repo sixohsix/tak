@@ -30,6 +30,8 @@ data Pos = Pos {
   line :: Int,
   row :: Int
   } deriving (Show, Eq, Ord)
+defaultPos :: Pos
+defaultPos = Pos 0 0
 
 data RenderAction = PrintStr Pos String
                   | SetCursor Pos
@@ -97,7 +99,7 @@ data SimpleEditor = SimpleEditor {
   }
 defaultSimpleEditor :: SimpleEditor
 defaultSimpleEditor =
-  SimpleEditor [] 0 defaultSelectionState defaultBuffer (Pos 0 0) "" 0 24
+  SimpleEditor [] 0 defaultSelectionState defaultBuffer defaultPos "" 0 24
 
 data InfoLineEditor = InfoLineEditor {
   infoBuffer :: Buffer
@@ -106,8 +108,10 @@ defaultInfoLineEditor = InfoLineEditor defaultBuffer
 
 data GlobalState = GlobalState {
   shouldQuit :: Bool,
+  clipboard :: [Seq.Seq String],
   editor :: SimpleEditor,
   infoLine :: InfoLineEditor
   }
 defaultGlobalState =
-  GlobalState False defaultSimpleEditor defaultInfoLineEditor
+  GlobalState False [] defaultSimpleEditor defaultInfoLineEditor
+
