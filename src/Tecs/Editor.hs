@@ -15,8 +15,6 @@ import Tecs.Editor.Cursor
 import Tecs.Editor.Undo as Undo
 import Tecs.Editor.Edit
 
-import Control.Monad.State
-
 isModified = Undo.isModified
 
 instance Editor SimpleEditor where
@@ -24,19 +22,19 @@ instance Editor SimpleEditor where
     let displayedBuffer = bufferDropLines (lineScroll editor) (buffer editor)
     renderBuffer Crop displayedBuffer height width
     setCursor (screenPos editor)
-  respond editor evt = (lookupWithDefault evtMap evt) evt editor
 
-ignoreEvt :: (SimpleEditor -> SimpleEditor) -> Event -> SimpleEditor -> SimpleEditor
-ignoreEvt f evt ed = f ed
+ignoreEvt :: (SimpleEditor -> SimpleEditor) -> GlobalState -> Event -> IO GlobalState
+ignoreEvt f gst ev = return $ gst { editor = f (editor gst) }
 
 ie = ignoreEvt
 
-handleOther evt st = case evt of
-  KeyEvent (KeyChar c) -> insertChar c st
-  otherwise -> st
+handleOther :: GlobalState -> Event -> IO GlobalState
+handleOther gst evt = case evt of
+  KeyEvent (KeyChar c) -> (ignoreEvt $ insertChar c) gst evt
+  otherwise -> return gst
 
-evtMap :: DefaultMap Event (Event -> SimpleEditor -> SimpleEditor)
-evtMap = defaultMapFromList [
+editorEvtMap :: DefaultMap Event (GlobalState -> Event -> IO GlobalState)
+editorEvtMap = defaultMapFromList [
   (KeyEvent KeyUp,             ie cursorUp),
   (KeyEvent KeyDown,           ie cursorDown),
   (KeyEvent KeyLeft,           ie cursorLeft),
@@ -50,7 +48,7 @@ evtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
   (KeyEvent $ KeyCtrlChar 'K', ie killLine)
-  ] handleOther
+  ] (\_ -> handleOther)
 
 
 simpleEditorFromFile :: String -> IO (SimpleEditor)
@@ -69,8 +67,6 @@ instance Editor InfoLineEditor where
   render editor height width = do
     invertText
     renderBuffer Crop (infoBuffer editor) height width
-  respond editor evt = editor
 
 setInfoLineContent infoLineEditor str =
   infoLineEditor { infoBuffer = strToBuffer str }
-

@@ -63,22 +63,27 @@ data Event = KeyEvent Key
            | NoEvent
            deriving (Show, Eq, Ord)
 
-data DefaultMap a b = DefaultMap {
-  items :: Map.Map a b,
-  defaultValue :: b
+data DefaultMap k v = DefaultMap {
+  items :: Map.Map k v,
+  defaultValue :: k -> v
   }
 
-defaultMapFromList :: Ord a => [(a, b)] -> b -> DefaultMap a b
+defaultMapFromList :: Ord a => [(a, b)] -> (a -> b) -> DefaultMap a b
 defaultMapFromList list defaultVal =
   DefaultMap (Map.fromList list) defaultVal
 
 lookupWithDefault :: Ord a => DefaultMap a b -> a -> b
-lookupWithDefault eMap evt =
-  maybe (defaultValue eMap) id (Map.lookup evt (items eMap))
+lookupWithDefault dMap k =
+  maybe (defaultValue dMap $ k) id (Map.lookup k (items dMap))
 
 class Editor a where
   render :: a -> Int -> Int -> RenderW ()
-  respond :: a -> Event -> a
+
+data Ring a = Ring {
+  members :: [a],
+  idx :: Int
+  }
+defaultRing = Ring [] 0
 
 data SimpleEditor = SimpleEditor {
   undoBuffers :: [(Buffer, Pos)],
@@ -97,12 +102,6 @@ data InfoLineEditor = InfoLineEditor {
   infoBuffer :: Buffer
   }
 defaultInfoLineEditor = InfoLineEditor defaultBuffer
-
-data Ring a = Ring {
-  members :: [a],
-  idx :: Int
-  }
-defaultRing = Ring [] 0
 
 data GlobalState = GlobalState {
   shouldQuit :: Bool,

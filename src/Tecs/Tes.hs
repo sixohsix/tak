@@ -13,9 +13,6 @@ import Tecs.Buffer
 
 import Debug.Trace (trace)
 
-forwardEvtToEditor globalState evt =
-  globalState { editor = respond (editor globalState) evt }
-
 topEvtMap :: DefaultMap Event (GlobalState -> Event -> IO GlobalState)
 topEvtMap =
   let m = Map.fromList [
@@ -26,9 +23,7 @@ topEvtMap =
             return st { editor = ed { lastSavePtr = 0 } }
             )
         ]
-  in DefaultMap m (\ts ev -> do let ts' = forwardEvtToEditor ts ev
-                                return ts'
-                  )
+  in DefaultMap m (lookupWithDefault editorEvtMap)
 
 handleEvt :: GlobalState -> Event -> IO GlobalState
 handleEvt globalState evt = (lookupWithDefault topEvtMap evt) globalState evt
