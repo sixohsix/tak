@@ -5,10 +5,12 @@ module Main where
 import qualified Control.Monad.State as S
 import qualified Data.Map as Map
 import System.Environment (getArgs)
+import Data.Monoid (mconcat)
 
 import Tecs.Types
 import Tecs.Display
 import Tecs.Editor
+import Tecs.Editor.Cursor (insertPos)
 import Tecs.Buffer
 
 import Debug.Trace (trace)
@@ -36,16 +38,18 @@ usage = unlines [
 
 infoLineContentFor globalState =
   let ed = editor globalState
-      modStr = if isModified ed
-               then "*"
-               else " "
-      fn     = fileName ed
-      selSt  = selState ed
-      firstR = (ranges selSt) !! 0
-      selStr = if not $ null (ranges selSt)
-               then "[" ++ (show $ fst firstR) ++ "," ++ (show $ snd firstR) ++ "]"
-               else ""
-  in "  " ++ modStr ++ "  " ++ fn ++ " " ++ selStr
+      modStr  = if isModified ed
+                then "*"
+                else " "
+      fn      = fileName ed
+      selSt   = selState ed
+      firstR  = (ranges selSt) !! 0
+      selStr  = if not $ null (ranges selSt)
+                then "[" ++ (show $ fst firstR) ++ "," ++ (show $ snd firstR) ++ "]"
+                else ""
+      Pos l r = insertPos ed
+      posStr  = mconcat [(show l), ":", (show r)]
+  in mconcat ["  ", modStr, "  ", fn, " ", posStr, " ", selStr]
 
 renderAndWaitEvent :: GlobalState -> IO Event
 renderAndWaitEvent st = do
