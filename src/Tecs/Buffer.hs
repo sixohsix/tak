@@ -41,7 +41,7 @@ renderBuffer wrapMode buffer height width =
   let lineStrs = linesToFixedLengthStrs wrapMode width (bufferToLines buffer)
       yPosL = [0..height - 1]
       p (yPos, str) = printStr (Pos yPos 0) str
-  in do mapM p (P.zip yPosL lineStrs)
+  in do mapM p (P.zip yPosL (lineStrs ++ (repeat "")))
         return ()
 
 
