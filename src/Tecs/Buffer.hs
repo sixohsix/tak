@@ -6,6 +6,7 @@ import Prelude as P
 import Data.Sequence ((><), (|>), (<|))
 import qualified Data.Sequence as Seq
 import Data.Foldable (toList)
+import Data.Monoid (mconcat)
 
 import Tecs.Types as TT
 import Tecs.Util
@@ -137,3 +138,28 @@ delSelection buf (start, end) =
               firstLineAfter = P.drop (row realEnd) $ Seq.index seq (line realEnd)
               midLine        = lastLineBefore ++ firstLineAfter
           in Buffer (((linesBefore |> midLine) >< linesAfter))
+
+insertLineSeqIntoBuffer :: Buffer -> Pos -> Seq.Seq String -> Buffer
+insertLineSeqIntoBuffer buf pos inSeq =
+  let Pos l r   = posWithinBuffer buf pos
+      seq       = lineSeq buf
+      seqBefore = Seq.take (l - 1) seq
+      seqAfter  = Seq.drop (l + 1) seq
+      line      = Seq.index seq l
+      lineBefore = P.take r line
+      lineAfter  = P.drop r line
+  in case Seq.length inSeq of
+     0 -> buf
+     1 -> buf { lineSeq = mconcat [seqBefore,
+                                   Seq.singleton (lineBefore ++ (Seq.index inSeq 0) ++ lineAfter),
+                                   seqAfter] }
+     otherwise ->
+         let firstLine = Seq.index inSeq 0
+             lastLine  = Seq.index inSeq ((Seq.length inSeq) - 1)
+             midLines  = Seq.drop 1 $ Seq.take ((Seq.length inSeq) - 1) inSeq
+         in buf { lineSeq = mconcat [seqBefore,
+                                     Seq.singleton (lineBefore ++ firstLine),
+                                     midLines,
+                                     Seq.singleton (lastLine ++ lineAfter),
+                                     seqAfter] }
+
