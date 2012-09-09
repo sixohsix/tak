@@ -12,8 +12,11 @@ import Tecs.Text
 import Tecs.Buffer
 import Tecs.Display
 import Tecs.Editor.Cursor
+import Tecs.Editor.Undo as Undo
 
 import Control.Monad.State
+
+isModified = Undo.isModified
 
 instance Editor SimpleEditor where
   render editor height width = do
@@ -21,24 +24,6 @@ instance Editor SimpleEditor where
     renderBuffer Crop displayedBuffer height width
     setCursor (screenPos editor)
   respond editor evt = (lookupWithDefault evtMap evt) evt editor
-
-pushUndo :: SimpleEditor -> SimpleEditor
-pushUndo st =
-  st { undoBuffers = (buffer st, cursorPos st):(undoBuffers st),
-       lastSavePtr = (lastSavePtr st) + 1 }
-
-popUndo :: SimpleEditor -> SimpleEditor
-popUndo st =
-  let (lastBuf, lastPos) = (undoBuffers st) !! 0
-  in if not $ null (undoBuffers st)
-     then st { buffer = lastBuf,
-               cursorPos = lastPos,
-               undoBuffers = drop 1 (undoBuffers st),
-               lastSavePtr = (lastSavePtr st) - 1 }
-     else st
-
-isModified :: SimpleEditor -> Bool
-isModified ed = (lastSavePtr ed) /= 0
 
 insertChar :: Char -> SimpleEditor -> SimpleEditor
 insertChar c st =
@@ -88,9 +73,6 @@ ignoreEvt :: (SimpleEditor -> SimpleEditor) -> Event -> SimpleEditor -> SimpleEd
 ignoreEvt f evt ed = f ed
 
 ie = ignoreEvt
-
-undo :: SimpleEditor -> SimpleEditor
-undo = fixScroll . popUndo
 
 handleOther evt st = case evt of
   KeyEvent (KeyChar c) -> insertChar c st
