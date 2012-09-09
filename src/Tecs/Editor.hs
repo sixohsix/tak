@@ -49,7 +49,8 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
   (KeyEvent $ KeyCtrlChar 'K', ie killLine),
-  (KeyEvent $ KeyCtrlChar '@', ie startOrFinishOrCancelSelecting)
+  (KeyEvent $ KeyCtrlChar '@', ie startOrFinishOrCancelSelecting),
+  (KeyEvent $ KeyCtrlChar 'X', ie deleteSelection)
   ] (\_ -> handleOther)
 
 

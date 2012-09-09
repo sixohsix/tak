@@ -8,11 +8,12 @@ import qualified Data.Sequence as Seq
 import Data.Foldable (toList)
 
 import Tecs.Types as TT
+import Tecs.Util
 import Tecs.Display
 import Tecs.Text
 
 empty :: Buffer
-empty = Buffer (Seq.fromList [""])
+empty = Buffer (Seq.singleton "")
 
 handleEmptySeq :: Buffer -> Buffer
 handleEmptySeq buf =
@@ -35,6 +36,12 @@ lineAt x buf = Seq.index (lineSeq buf) x
 bufferDropLines :: Int -> Buffer -> Buffer
 bufferDropLines lines buffer =
   handleEmptySeq $ Buffer $ Seq.drop lines (lineSeq buffer)
+
+posWithinBuffer :: Buffer -> Pos -> Pos
+posWithinBuffer buf (Pos y x) =
+  let l = clamp 0 (lastLineIdx buf) y
+      r = clamp 0 (length $ lineAt l buf) x
+  in Pos l r
 
 renderBuffer :: WrapMode -> Buffer -> Int -> Int -> RenderW ()
 renderBuffer wrapMode buffer height width =
@@ -94,3 +101,39 @@ concatLine buf idx =
   in if idx <= 0 || (Seq.length right) < 2
      then buf
      else buf { lineSeq = (left |> concatted) >< (Seq.drop 2 right) }
+
+getSelection :: Buffer -> (Pos, Pos) -> Buffer
+getSelection buf (start, end) =
+  let realStart = posWithinBuffer buf start
+      realEnd   = posWithinBuffer buf end
+      isOneLine = (line realStart) == (line realEnd)
+      firstLine = lineAt (line realStart) buf
+  in if isOneLine
+     then let nMidChars = (row realEnd) - (row realStart)
+          in Buffer $ Seq.singleton $ P.take nMidChars $ P.drop (row realStart) firstLine
+     else let lastLine  = lineAt (line realEnd) buf
+              nMidLines = (line realEnd) - (line realStart)
+              firstMidlineIdx = (line realStart) + 1
+              seq       = lineSeq buf
+              midLines  = Seq.take nMidLines $ Seq.drop firstMidlineIdx seq
+              cFirstLine = P.drop (row realStart) firstLine
+              cLastLine  = P.take (row realEnd) lastLine
+          in Buffer (((cFirstLine <| midLines) |> cLastLine))
+
+delSelection :: Buffer -> (Pos, Pos) -> Buffer
+delSelection buf (start, end) =
+  let realStart = posWithinBuffer buf start
+      realEnd   = posWithinBuffer buf end
+      isOneLine = (line realStart) == (line realEnd)
+      firstLine = lineAt (line realStart) buf
+      seq       = lineSeq buf
+  in if isOneLine
+     then let before = P.take (row realStart) firstLine
+              after  = P.drop (row realEnd) firstLine
+          in buf { lineSeq = Seq.update (line realStart) (before ++ after) seq }
+     else let linesBefore    = Seq.take ((line realStart) - 1) seq
+              lastLineBefore = P.take (row realStart) $ Seq.index seq (line realStart)
+              linesAfter     = Seq.drop ((line realEnd) + 1) seq
+              firstLineAfter = P.drop (row realEnd) $ Seq.index seq (line realEnd)
+              midLine        = lastLineBefore ++ firstLineAfter
+          in Buffer (((linesBefore |> midLine) >< linesAfter))

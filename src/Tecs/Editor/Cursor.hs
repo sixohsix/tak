@@ -1,14 +1,11 @@
 module Tecs.Editor.Cursor where
 
+import Tecs.Util
 import Tecs.Types
 import Tecs.Buffer
 
-
 insertPos :: SimpleEditor -> Pos
-insertPos se = let cPos = cursorPos se
-                   l = min (line cPos) (lastLineIdx (buffer se))
-                   r = min (row cPos) (length $ lineAt l $ buffer se)
-               in Pos l r
+insertPos ed = posWithinBuffer (buffer ed) (cursorPos ed)
 
 screenPos :: SimpleEditor -> Pos
 screenPos se = let iPos = insertPos se

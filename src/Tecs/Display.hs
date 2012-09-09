@@ -14,6 +14,7 @@ import qualified Data.Text.Encoding as DTE
 import Foreign.C.Types (CInt)
 
 import Tecs.Types
+import Tecs.Util (clamp)
 
 import Debug.Trace (trace)
 
@@ -36,9 +37,6 @@ clearScreen = C.wclear C.stdScr
 
 getScreenSize :: IO (Int, Int)
 getScreenSize = C.scrSize
-
-clamp :: Int -> Int -> Int -> Int
-clamp low high = max low . min high
 
 refresh = C.refresh
 
