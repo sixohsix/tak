@@ -13,10 +13,10 @@ import Tecs.Buffer
 
 import Debug.Trace (trace)
 
-forwardEvtToEditor tesState evt =
-  tesState { editor = respond (editor tesState) evt }
+forwardEvtToEditor globalState evt =
+  globalState { editor = respond (editor globalState) evt }
 
-topEvtMap :: DefaultMap Event (TesState -> Event -> IO TesState)
+topEvtMap :: DefaultMap Event (GlobalState -> Event -> IO GlobalState)
 topEvtMap =
   let m = Map.fromList [
         (KeyEvent $ KeyCtrlChar 'Q', \st _ -> return $ st { shouldQuit = True }),
@@ -30,8 +30,8 @@ topEvtMap =
                                 return ts'
                   )
 
-handleEvt :: TesState -> Event -> IO TesState
-handleEvt tesState evt = (lookupWithDefault topEvtMap evt) tesState evt
+handleEvt :: GlobalState -> Event -> IO GlobalState
+handleEvt globalState evt = (lookupWithDefault topEvtMap evt) globalState evt
 
 usage :: String
 usage = unlines [
@@ -39,15 +39,15 @@ usage = unlines [
   "  tes <file>"
   ]
 
-infoLineContentFor tesState =
-  let ed = editor tesState
+infoLineContentFor globalState =
+  let ed = editor globalState
       modStr = if isModified ed
                then "*"
                else " "
       fn     = fileName ed
   in "  " ++ modStr ++ "  " ++ fn
 
-renderAndWaitEvent :: TesState -> IO Event
+renderAndWaitEvent :: GlobalState -> IO Event
 renderAndWaitEvent st = do
   (y, x) <- getScreenSize
   renderEditor (Box (y - 1) 0       1 x) (infoLine st)
@@ -55,16 +55,16 @@ renderAndWaitEvent st = do
   refresh
   waitEvent
 
-mainLoop tesState = do
+mainLoop globalState = do
   (y, x) <- getScreenSize
-  let infoL     = infoLine tesState
-      tesState' = tesState { editor = (editor tesState) { viewHeight = y - 1 },
-                             infoLine = setInfoLineContent infoL (infoLineContentFor tesState) }
-  evt <- renderAndWaitEvent tesState'
-  nextTesState <- handleEvt tesState' evt
-  if (shouldQuit nextTesState)
+  let infoL     = infoLine globalState
+      globalState' = globalState { editor = (editor globalState) { viewHeight = y - 1 },
+                             infoLine = setInfoLineContent infoL (infoLineContentFor globalState) }
+  evt <- renderAndWaitEvent globalState'
+  nextGlobalState <- handleEvt globalState' evt
+  if (shouldQuit nextGlobalState)
     then return ()
-    else mainLoop nextTesState
+    else mainLoop nextGlobalState
 
 main = do
   args <- getArgs
@@ -74,6 +74,6 @@ startEditor args = do
   if null args
     then putStrLn usage
     else do editor <- simpleEditorFromFile (args !! 0)
-            withCurses $ mainLoop (defaultTesState { editor = editor })
+            withCurses $ mainLoop (defaultGlobalState { editor = editor })
   return ()
 

@@ -104,10 +104,10 @@ data Ring a = Ring {
   }
 defaultRing = Ring [] 0
 
-data TesState = TesState {
+data GlobalState = GlobalState {
   shouldQuit :: Bool,
   editor :: SimpleEditor,
   infoLine :: InfoLineEditor
   }
-defaultTesState =
-  TesState False defaultSimpleEditor defaultInfoLineEditor
+defaultGlobalState =
+  GlobalState False defaultSimpleEditor defaultInfoLineEditor
