@@ -14,6 +14,7 @@ import Tecs.Display
 import Tecs.Editor.Cursor
 import Tecs.Editor.Undo as Undo
 import Tecs.Editor.Edit
+import Tecs.Editor.Selection
 
 isModified = Undo.isModified
 
@@ -47,7 +48,8 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'E', ie cursorEndOfLine),
   (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
-  (KeyEvent $ KeyCtrlChar 'K', ie killLine)
+  (KeyEvent $ KeyCtrlChar 'K', ie killLine),
+  (KeyEvent $ KeyCtrlChar '@', ie startOrFinishOrCancelSelecting)
   ] (\_ -> handleOther)
 
 

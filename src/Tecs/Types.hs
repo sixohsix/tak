@@ -29,7 +29,7 @@ data WrapMode = Crop
 data Pos = Pos {
   line :: Int,
   row :: Int
-  } deriving (Show)
+  } deriving (Show, Eq, Ord)
 
 data RenderAction = PrintStr Pos String
                   | SetCursor Pos
@@ -79,15 +79,16 @@ lookupWithDefault dMap k =
 class Editor a where
   render :: a -> Int -> Int -> RenderW ()
 
-data Ring a = Ring {
-  members :: [a],
-  idx :: Int
+data SelectionState = SelectionState {
+  ranges :: [(Pos, Pos)],
+  openRange :: Maybe Pos
   }
-defaultRing = Ring [] 0
+defaultSelectionState = SelectionState [] Nothing
 
 data SimpleEditor = SimpleEditor {
   undoBuffers :: [(Buffer, Pos)],
   lastSavePtr :: Int,
+  selState :: SelectionState,
   buffer :: Buffer,
   cursorPos :: Pos,
   fileName :: String,
@@ -96,7 +97,7 @@ data SimpleEditor = SimpleEditor {
   }
 defaultSimpleEditor :: SimpleEditor
 defaultSimpleEditor =
-  SimpleEditor [] 0 defaultBuffer (Pos 0 0) "" 0 24
+  SimpleEditor [] 0 defaultSelectionState defaultBuffer (Pos 0 0) "" 0 24
 
 data InfoLineEditor = InfoLineEditor {
   infoBuffer :: Buffer

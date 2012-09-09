@@ -40,7 +40,12 @@ infoLineContentFor globalState =
                then "*"
                else " "
       fn     = fileName ed
-  in "  " ++ modStr ++ "  " ++ fn
+      selSt  = selState ed
+      firstR = (ranges selSt) !! 0
+      selStr = if not $ null (ranges selSt)
+               then "[" ++ (show $ fst firstR) ++ "," ++ (show $ snd firstR) ++ "]"
+               else ""
+  in "  " ++ modStr ++ "  " ++ fn ++ " " ++ selStr
 
 renderAndWaitEvent :: GlobalState -> IO Event
 renderAndWaitEvent st = do
