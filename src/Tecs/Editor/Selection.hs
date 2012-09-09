@@ -3,6 +3,7 @@ module Tecs.Editor.Selection where
 import Tecs.Types
 import Tecs.Buffer
 import Tecs.Editor.Cursor
+import Tecs.Editor.Undo (pushUndo)
 import Data.List (sort)
 
 
@@ -24,7 +25,8 @@ finishSelecting st =
           rangePoss    = sort [rangeStartPos, rangeStopPos]
           newRange     = (rangePoss !! 0, rangePoss !! 1)
       in if (fst newRange) /= (snd newRange)
-         then st { selState = selSt { ranges = newRange:(ranges selSt) } }
+         then st { selState = selSt { ranges = newRange:(ranges selSt),
+                                      openRange = Nothing } }
          else st
     Nothing -> st
 
@@ -53,6 +55,22 @@ deleteSelection =
             rs         = ranges selSt
             firstRange = rs !! 0
             buf        = buffer st
-        in st { buffer    = delSelection buf firstRange,
-                selState  = selSt { ranges = drop 1 rs } }
+        in (pushUndo st) { buffer    = delSelection buf firstRange,
+                           selState  = selSt { ranges = drop 1 rs },
+                           cursorPos = posWithinBuffer buf (fst firstRange) }
   in applyIfReasonableSelection delSel
+
+forgetOpenRange :: SimpleEditor -> SimpleEditor
+forgetOpenRange st =
+  st { selState = (selState st) { openRange = Nothing } }
+
+forgetRanges :: SimpleEditor -> SimpleEditor
+forgetRanges st =
+  st { selState = (selState st) { ranges = [] } }
+
+forgetOpenRangeOrRanges :: SimpleEditor -> SimpleEditor
+forgetOpenRangeOrRanges st =
+  let selSt = selState st
+  in case openRange selSt of
+    Just _    -> forgetOpenRange st
+    otherwise -> forgetRanges st
