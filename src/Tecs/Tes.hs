@@ -15,22 +15,14 @@ import Debug.Trace (trace)
 
 data TesState = TesState {
   shouldQuit :: Bool,
-  inInfoLine :: Bool,
   editor :: SimpleEditor,
   infoLine :: InfoLineEditor
   }
-defaultTesState editor =
-  TesState False False editor defaultInfoLineEditor
+defaultTesState =
+  TesState False defaultSimpleEditor defaultInfoLineEditor
 
 forwardEvtToEditor tesState evt =
-  if (inInfoLine tesState)
-  then tesState { infoLine = respond (infoLine tesState) evt }
-  else tesState { editor = respond (editor tesState) evt }
-
-prepareInfoLine tesState = tesState {
-  inInfoLine = True,
-  infoLine = setInfoLineContent (infoLine tesState ) ":"
-  }
+  tesState { editor = respond (editor tesState) evt }
 
 topEvtMap :: DefaultMap Event (TesState -> Event -> IO TesState)
 topEvtMap =
@@ -63,15 +55,20 @@ infoLineContentFor tesState =
       fn     = fileName ed
   in "  " ++ modStr ++ "  " ++ fn
 
+renderAndWaitEvent :: TesState -> IO Event
+renderAndWaitEvent st = do
+  (y, x) <- getScreenSize
+  renderEditor (Box (y - 1) 0       1 x) (infoLine st)
+  renderEditor (Box 0       0 (y - 1) x) (editor st)
+  refresh
+  waitEvent
+
 mainLoop tesState = do
   (y, x) <- getScreenSize
   let infoL     = infoLine tesState
       tesState' = tesState { editor = (editor tesState) { viewHeight = y - 1 },
                              infoLine = setInfoLineContent infoL (infoLineContentFor tesState) }
-  renderEditor (Box (y - 1) 0      1  x) (infoLine tesState')
-  renderEditor (Box 0       0 (y - 1) x) (editor tesState')
-  refresh
-  evt <- waitEvent
+  evt <- renderAndWaitEvent tesState'
   nextTesState <- handleEvt tesState' evt
   if (shouldQuit nextTesState)
     then return ()
@@ -85,6 +82,6 @@ startEditor args = do
   if null args
     then putStrLn usage
     else do editor <- simpleEditorFromFile (args !! 0)
-            withCurses $ mainLoop (defaultTesState editor)
+            withCurses $ mainLoop (defaultTesState { editor = editor })
   return ()
 

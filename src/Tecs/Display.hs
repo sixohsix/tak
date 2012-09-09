@@ -135,3 +135,8 @@ drawToScreen (Box top left height width) command =
         C.wAddStr C.stdScr realStr
         return ()
 
+renderEditor :: Editor a => Box -> a -> IO ()
+renderEditor b@(Box _ _ height width) editor =
+  let (_, commands) = execRender (render editor height width)
+  in do mapM (drawToScreen b) ([SetColorPair 0] ++ commands)
+        return ()

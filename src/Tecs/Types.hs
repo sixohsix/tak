@@ -8,6 +8,7 @@ import qualified Control.Monad.State as St
 data Buffer = Buffer {
   lineSeq :: Seq.Seq String
   } deriving (Show)
+defaultBuffer = Buffer $ Seq.fromList [""]
 
 data Box = Box {
   top :: Int,
@@ -78,6 +79,19 @@ lookupWithDefault eMap evt =
 class Editor a where
   render :: a -> Int -> Int -> RenderW ()
   respond :: a -> Event -> a
+
+data SimpleEditor = SimpleEditor {
+  undoBuffers :: [(Buffer, Pos)],
+  lastSavePtr :: Int,
+  buffer :: Buffer,
+  cursorPos :: Pos,
+  fileName :: String,
+  lineScroll :: Int,
+  viewHeight :: Int
+  }
+defaultSimpleEditor :: SimpleEditor
+defaultSimpleEditor =
+  SimpleEditor [] 0 defaultBuffer (Pos 0 0) "" 0 24
 
 data Ring a = Ring {
   members :: [a],
