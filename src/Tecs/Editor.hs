@@ -6,6 +6,7 @@ import Prelude as P
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTIO
 import System.Directory (doesFileExist)
+import Control.Arrow ( (>>>) )
 
 import Tecs.Types as TT
 import Tecs.Text
@@ -24,17 +25,17 @@ instance Editor SimpleEditor where
     renderBuffer Crop displayedBuffer height width
     setCursor (screenPos editor)
 
-ignoreEvt :: (SimpleEditor -> SimpleEditor) -> GlobalState -> Event -> IO GlobalState
-ignoreEvt f gst ev = return $ gst { editor = f (editor gst) }
+ignoreEvt :: (SimpleEditor -> SimpleEditor) -> GlobalState -> IO GlobalState
+ignoreEvt f gst = return $ gst { editor = f (editor gst) }
 
 ie = ignoreEvt
 
-handleOther :: GlobalState -> Event -> IO GlobalState
-handleOther gst evt = case evt of
-  KeyEvent (KeyChar c) -> (ignoreEvt $ insertChar c) gst evt
+handleOther :: Event -> GlobalState -> IO GlobalState
+handleOther evt gst = case evt of
+  KeyEvent (KeyChar c) -> (ignoreEvt $ insertChar c) gst
   otherwise -> return gst
 
-editorEvtMap :: DefaultMap Event (GlobalState -> Event -> IO GlobalState)
+editorEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 editorEvtMap = defaultMapFromList [
   (KeyEvent KeyUp,             ie cursorUp),
   (KeyEvent KeyDown,           ie cursorDown),
@@ -50,11 +51,11 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
   (KeyEvent $ KeyCtrlChar 'K', ie killLine),
   (KeyEvent $ KeyCtrlChar '@', ie startOrFinishOrCancelSelecting),
-  (KeyEvent $ KeyCtrlChar 'X', copyReasonableSelection >>= (ie deleteSelection)),
-  (KeyEvent $ KeyCtrlChar 'C', copyReasonableSelection),
+  (KeyEvent $ KeyCtrlChar 'X', copyReasonableSelection >>> (ie deleteSelection)),
+  (KeyEvent $ KeyCtrlChar 'C', return . copyReasonableSelection),
   (KeyEvent $ KeyCtrlChar 'G', ie forgetOpenRangeOrRanges),
-  (KeyEvent $ KeyCtrlChar 'V', pasteAtInsertPos)
-  ] (\_ -> handleOther)
+  (KeyEvent $ KeyCtrlChar 'V', return . pasteAtInsertPos)
+  ] handleOther
 
 
 simpleEditorFromFile :: String -> IO (SimpleEditor)

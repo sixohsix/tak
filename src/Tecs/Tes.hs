@@ -15,11 +15,11 @@ import Tecs.Buffer
 
 import Debug.Trace (trace)
 
-topEvtMap :: DefaultMap Event (GlobalState -> Event -> IO GlobalState)
+topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 topEvtMap =
   let m = Map.fromList [
-        (KeyEvent $ KeyCtrlChar 'Q', \st _ -> return $ st { shouldQuit = True }),
-        (KeyEvent $ KeyCtrlChar 'S', \st _ -> do
+        (KeyEvent $ KeyCtrlChar 'Q', \st -> return $ st { shouldQuit = True }),
+        (KeyEvent $ KeyCtrlChar 'S', \st -> do
             let ed = editor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
             return st { editor = ed { lastSavePtr = 0 } }
@@ -28,7 +28,7 @@ topEvtMap =
   in DefaultMap m (lookupWithDefault editorEvtMap)
 
 handleEvt :: GlobalState -> Event -> IO GlobalState
-handleEvt globalState evt = (lookupWithDefault topEvtMap evt) globalState evt
+handleEvt globalState evt = (lookupWithDefault topEvtMap evt) globalState
 
 usage :: String
 usage = unlines [
