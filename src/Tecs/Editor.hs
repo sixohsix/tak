@@ -51,7 +51,7 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
   (KeyEvent $ KeyCtrlChar 'K', ie killLine),
   (KeyEvent $ KeyCtrlChar '@', ie startOrFinishOrCancelSelecting),
-  (KeyEvent $ KeyCtrlChar 'X', copyReasonableSelection >>> (ie deleteSelection)),
+  (KeyEvent $ KeyCtrlChar 'X', \gst -> ((copyReasonableSelection >>> (ie deleteSelection)) gst) >>= tmpWriteClipboard),
   (KeyEvent $ KeyCtrlChar 'C', return . copyReasonableSelection),
   (KeyEvent $ KeyCtrlChar 'G', ie forgetOpenRangeOrRanges),
   (KeyEvent $ KeyCtrlChar 'V', return . pasteAtInsertPos)

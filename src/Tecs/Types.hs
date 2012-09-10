@@ -4,9 +4,10 @@ import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified Control.Monad.State as St
 
+type LineSeq = Seq.Seq String
 
 data Buffer = Buffer {
-  lineSeq :: Seq.Seq String
+  lineSeq :: LineSeq
   } deriving (Show)
 defaultBuffer = Buffer $ Seq.fromList [""]
 

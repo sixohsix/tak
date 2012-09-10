@@ -22,6 +22,9 @@ handleEmptySeq buf =
   then empty
   else buf
 
+lineSeqToStr :: Seq.Seq String -> String
+lineSeqToStr seq = unlines $ toList seq
+
 strToBuffer :: String -> Buffer
 strToBuffer s = handleEmptySeq $ Buffer (Seq.fromList (lines s))
 
@@ -103,41 +106,34 @@ concatLine buf idx =
      then buf
      else buf { lineSeq = (left |> concatted) >< (Seq.drop 2 right) }
 
-getSelection :: Buffer -> (Pos, Pos) -> Seq.Seq String
-getSelection buf (start, end) =
-  let realStart = posWithinBuffer buf start
-      realEnd   = posWithinBuffer buf end
-      isOneLine = (line realStart) == (line realEnd)
-      firstLine = lineAt (line realStart) buf
-  in if isOneLine
-     then let nMidChars = (row realEnd) - (row realStart)
-          in Seq.singleton $ P.take nMidChars $ P.drop (row realStart) firstLine
-     else let lastLine  = lineAt (line realEnd) buf
-              nMidLines = (line realEnd) - (line realStart)
-              firstMidlineIdx = (line realStart) + 1
-              seq       = lineSeq buf
-              midLines  = Seq.take nMidLines $ Seq.drop firstMidlineIdx seq
-              cFirstLine = P.drop (row realStart) firstLine
-              cLastLine  = P.take (row realEnd) lastLine
-          in (((cFirstLine <| midLines) |> cLastLine))
+
+cutSelectionLS :: LineSeq -> (Pos, Pos) -> (LineSeq, LineSeq)
+cutSelectionLS src ((Pos sl sr), (Pos el er)) =
+  let splitOne seq = let (one, rest) = Seq.splitAt 1 seq in (Seq.index one 0, rest)
+      rl = (el - sl) - 1
+      (before, rem0) = Seq.splitAt sl src
+      (startLine, rem1) = splitOne rem0
+      (beforeLine, inLine) = P.splitAt sr startLine
+      (inLines, _) = Seq.splitAt rl rem1
+      (_, rem2) = Seq.splitAt el src
+      (lastLine, after) = splitOne rem2
+      (outLine, afterLine) = P.splitAt er lastLine
+      si = Seq.singleton
+  in (if sl == el 
+         then si (inLine ++ outLine)
+         else mconcat [si inLine, inLines, si outLine],
+      mconcat [before, si (beforeLine ++ afterLine), after])
+
+cutSelection :: Buffer -> (Pos, Pos) -> (LineSeq, Buffer)
+cutSelection buf r =
+  let (cut, rest) = cutSelectionLS (lineSeq buf) r
+  in (cut, buf { lineSeq = rest })
+
+getSelection :: Buffer -> (Pos, Pos) -> LineSeq
+getSelection b r = fst $ cutSelection b r
 
 delSelection :: Buffer -> (Pos, Pos) -> Buffer
-delSelection buf (start, end) =
-  let realStart = posWithinBuffer buf start
-      realEnd   = posWithinBuffer buf end
-      isOneLine = (line realStart) == (line realEnd)
-      firstLine = lineAt (line realStart) buf
-      seq       = lineSeq buf
-  in if isOneLine
-     then let before = P.take (row realStart) firstLine
-              after  = P.drop (row realEnd) firstLine
-          in buf { lineSeq = Seq.update (line realStart) (before ++ after) seq }
-     else let linesBefore    = Seq.take ((line realStart) - 1) seq
-              lastLineBefore = P.take (row realStart) $ Seq.index seq (line realStart)
-              linesAfter     = Seq.drop ((line realEnd) + 1) seq
-              firstLineAfter = P.drop (row realEnd) $ Seq.index seq (line realEnd)
-              midLine        = lastLineBefore ++ firstLineAfter
-          in Buffer (((linesBefore |> midLine) >< linesAfter))
+delSelection b r = snd $ cutSelection b r
 
 insertLineSeqIntoBuffer :: Buffer -> Pos -> Seq.Seq String -> Buffer
 insertLineSeqIntoBuffer buf pos inSeq =
