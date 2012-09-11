@@ -53,10 +53,15 @@ instance Monad RenderW where
 
 data Key = KeyChar Char
          | KeyCtrlChar Char
+         | KeyEscapedChar Char
          | KeyUp
          | KeyDown
          | KeyLeft
          | KeyRight
+         | KeyCtrlUp
+         | KeyCtrlDown
+         | KeyCtrlLeft
+         | KeyCtrlRight
          | KeyEscape
          | KeyEnter
          | KeyDel
@@ -64,6 +69,7 @@ data Key = KeyChar Char
          | KeyPageUp
            deriving (Show, Eq, Ord)
 data Event = KeyEvent Key
+           | TimeoutEvent
            | NoEvent
            deriving (Show, Eq, Ord)
 

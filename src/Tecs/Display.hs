@@ -26,9 +26,11 @@ withCurses f = do
   C.echo False
   C.keypad C.stdScr True
   C.nl True
+  C.timeout 200
   C.initPair (C.Pair 1024) CH.black CH.white
   (y, x) <- getScreenSize
   C.move (y-1) (x-1)
+  C.move 0 0
   f
   C.endWin
   CH.end
@@ -53,10 +55,26 @@ cursesKeyToEvt C.KeyRight         = KeyEvent KeyRight
 cursesKeyToEvt C.KeyEnter         = KeyEvent KeyEnter
 cursesKeyToEvt C.KeyNPage         = KeyEvent KeyPageDown
 cursesKeyToEvt C.KeyPPage         = KeyEvent KeyPageUp
+cursesKeyToEvt (C.KeyUnknown 562) = KeyEvent KeyCtrlUp
+cursesKeyToEvt (C.KeyUnknown 521) = KeyEvent KeyCtrlDown
+cursesKeyToEvt (C.KeyUnknown (-1))= TimeoutEvent
 cursesKeyToEvt _                  = NoEvent
 
 
-waitEvent :: IO (Event)
+escape = ord '\ESC'
+
+getNextKey = C.getch
+ungetKey = C.ungetCh
+
+decodeEscSeq :: IO Event
+decodeEscSeq = do
+  key1 <- getNextKey
+  case C.decodeKey key1 of
+    C.KeyChar c -> return $ KeyEvent $ KeyEscapedChar c
+    otherwise   -> do ungetKey key1
+                      return $ KeyEvent $ KeyEscape
+
+waitEvent :: IO Event
 waitEvent = let
   isValidFirstKey key =
     key <= 255
@@ -73,8 +91,6 @@ waitEvent = let
 
   cIntToBs :: [CInt] -> B.ByteString
   cIntToBs l = B.pack $ map (fromIntegral . toInteger) l
-
-  getNextKey = C.getch
 
   decodeKey :: CInt -> IO (C.Key)
   decodeKey firstKey =
@@ -103,8 +119,11 @@ waitEvent = let
 
   in do
     firstKeyCInt <- getNextKey
-    utf8DecodedKey <- decodeKey firstKeyCInt
-    return $ cursesKeyToEvt utf8DecodedKey
+    case (fromIntegral . toInteger) firstKeyCInt == ord '\ESC' of
+      True      -> decodeEscSeq
+      otherwise ->
+        do utf8DecodedKey <- decodeKey firstKeyCInt
+           return $ cursesKeyToEvt utf8DecodedKey
 
 printStr :: Pos -> String -> RenderW ()
 printStr p s = RenderW ((), [PrintStr p s])
