@@ -5,6 +5,7 @@ module Tecs.Buffer where
 import Prelude as P
 import Data.Sequence ((><), (|>), (<|))
 import qualified Data.Sequence as Seq
+import Data.Char (isSpace)
 import Data.Foldable (toList)
 import Data.Monoid (mconcat)
 
@@ -36,6 +37,21 @@ bufferToLines buf = toList (lineSeq buf)
 
 lineAt :: Int -> Buffer -> String
 lineAt x buf = Seq.index (lineSeq buf) x
+
+idxOfNextBlankLineLS :: LineSeq -> Int -> Maybe Int
+idxOfNextBlankLineLS lineSeq idx =
+  let remainingLines = Seq.drop idx lineSeq
+      lineIdxLines = P.zip (toList remainingLines) [idx..]
+      isBlankLine (line, _) = all isSpace line
+  in case P.filter isBlankLine lineIdxLines of
+    (_, i):_  -> Just i
+    otherwise -> Nothing
+
+posOfNextBlankLineAfter :: Buffer -> Pos -> Pos
+posOfNextBlankLineAfter buf pos=
+  case idxOfNextBlankLineLS (lineSeq buf) ((line pos) + 1) of
+    Just i  -> Pos i 0
+    Nothing -> pos
 
 bufferDropLines :: Int -> Buffer -> Buffer
 bufferDropLines lines buffer =
