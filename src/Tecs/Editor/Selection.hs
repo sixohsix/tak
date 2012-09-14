@@ -5,7 +5,7 @@ import Tecs.Buffer
 import Tecs.Editor.Cursor
 import Tecs.Editor.Undo (pushUndo)
 import Data.List (sort)
-
+import qualified Data.Sequence as Seq
 
 startSelecting :: SimpleEditor -> SimpleEditor
 startSelecting st =
@@ -93,8 +93,14 @@ pasteAtInsertPos gst
       let ed = editor gst
           buf = buffer ed
           iPos = insertPos ed
+          Pos l r = iPos
           pasteSeq = (clipboard gst) !! 0
-      in gst { editor = (pushUndo ed) { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq } }
+          lPasteSeq = Seq.length pasteSeq
+          isOneLinePaste = lPasteSeq == 1
+          lastLineLen = length $ Seq.index pasteSeq (lPasteSeq - 1)
+      in gst { editor = (pushUndo ed) { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq,
+                                        cursorPos = Pos (l + (Seq.length pasteSeq) - 1)
+                                                        (if isOneLinePaste then (r + lastLineLen) else lastLineLen) } }
 
 tmpWriteClipboard gst = do
   writeFile "./clip.tmp" $ lineSeqToStr ((clipboard gst) !! 0)

@@ -154,7 +154,6 @@ insertLineSeqIntoBuffer buf pos inSeq =
      1 -> buf { lineSeq = mconcat [seqBefore,
                                    Seq.singleton (lineBefore ++ (Seq.index inSeq 0) ++ lineAfter),
                                    seqAfter] }
---                cursorPos = pos { row = r + (P.length $ Seq.index inSeq 0) } }
      otherwise ->
          let firstLine = Seq.index inSeq 0
              lastLine  = Seq.index inSeq ((Seq.length inSeq) - 1)
@@ -164,7 +163,6 @@ insertLineSeqIntoBuffer buf pos inSeq =
                                      midLines,
                                      Seq.singleton (lastLine ++ lineAfter),
                                      seqAfter] }
---                  cursorPos = Pos (l + Seq.length inSeq) (P.length lastLine) }
 
 posNextPara :: Buffer -> Pos -> Pos
 posNextPara buf pos =
