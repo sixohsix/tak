@@ -1,0 +1,31 @@
+This is a text editor.
+----------------------
+
+
+USAGE
+=====
+
+    tes <file>
+
+
+KEYBOARD SHORTCUTS
+==================
+
+  C-q        Quit
+  C-s        Save file
+  C-z        Undo
+  C-k        Kill (delete) current line
+
+
+  movement:
+
+  arrows              move around lines and rows
+  C-arrow-l/r         move back or forwards by word
+  C-arrow-u/d         move up or down one paragraph (separated by blank lines) 
+
+
+  copy/paste:
+
+  Use C-space to begin a "region". Then use C-c to cut that region or C-c to copy 
+  it. Use C-v to paste at current insertion point.
+
