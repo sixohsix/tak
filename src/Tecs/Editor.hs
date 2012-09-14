@@ -55,7 +55,8 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'C', return . copyReasonableSelection),
   (KeyEvent $ KeyCtrlChar 'G', ie forgetOpenRangeOrRanges),
   (KeyEvent $ KeyCtrlChar 'V', return . pasteAtInsertPos),
-  (KeyEvent KeyCtrlDown,       ie (\ed -> ed { cursorPos = posOfNextBlankLineAfter (buffer ed) (insertPos ed) }))
+  (KeyEvent KeyCtrlUp,         ie cursorPrevPara),
+  (KeyEvent KeyCtrlDown,       ie cursorNextPara)
   ] handleOther
 
 

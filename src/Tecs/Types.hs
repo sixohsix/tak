@@ -4,6 +4,7 @@ import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified Control.Monad.State as St
 
+type LineIdx = Int
 
 type LineSeq = Seq.Seq String
 

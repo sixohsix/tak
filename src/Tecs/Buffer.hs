@@ -14,6 +14,9 @@ import Tecs.Util
 import Tecs.Display
 import Tecs.Text
 
+import Tecs.Buffer.LineSeq
+
+
 empty :: Buffer
 empty = Buffer (Seq.singleton "")
 
@@ -174,4 +177,16 @@ insertLineSeqIntoBuffer buf pos inSeq =
                                      midLines,
                                      Seq.singleton (lastLine ++ lineAfter),
                                      seqAfter] }
+
+posNextPara :: Buffer -> Pos -> Pos
+posNextPara buf pos =
+  case idxParasAfter (lineSeq buf) (line pos) of
+    idx:_ -> Pos idx 0
+    otherwise -> pos
+
+posPrevPara :: Buffer -> Pos -> Pos
+posPrevPara buf pos =
+  case idxParasBefore (lineSeq buf) (line pos) of
+    idx:_ -> Pos idx 0
+    otherwise -> pos
 
