@@ -80,9 +80,11 @@ cursorPageUp ed =
       pageLen = (viewHeight ed) - 3
   in fixScroll $ ed { cursorPos = cp { line = max 0 (l - pageLen) } }
 
-cursorNextPara ed =
-  fixScroll $ ed { cursorPos = posNextPara (buffer ed) (insertPos ed) }
+updateCursor :: (Buffer -> Pos -> Pos) -> SimpleEditor -> SimpleEditor
+updateCursor f ed = fixScroll $ ed { cursorPos = f (buffer ed) (insertPos ed) }
 
-cursorPrevPara ed =
-  fixScroll $ ed { cursorPos = posPrevPara (buffer ed) (insertPos ed) }
+cursorNextPara = updateCursor posNextPara
+cursorPrevPara = updateCursor posPrevPara
+cursorNextWord = updateCursor posNextWord
+cursorPrevWord = updateCursor posPrevWord
 

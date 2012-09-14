@@ -15,6 +15,7 @@ import Tecs.Display
 import Tecs.Text
 
 import Tecs.Buffer.LineSeq
+import Tecs.Buffer.Line
 
 
 empty :: Buffer
@@ -35,26 +36,11 @@ strToBuffer s = handleEmptySeq $ Buffer (Seq.fromList (lines s))
 bufferToStr :: Buffer -> String
 bufferToStr buf = unlines $ bufferToLines buf
 
-bufferToLines :: Buffer -> [String]
+bufferToLines :: Buffer -> [Line]
 bufferToLines buf = toList (lineSeq buf)
 
 lineAt :: Int -> Buffer -> String
 lineAt x buf = Seq.index (lineSeq buf) x
-
-idxOfNextBlankLineLS :: LineSeq -> Int -> Maybe Int
-idxOfNextBlankLineLS lineSeq idx =
-  let remainingLines = Seq.drop idx lineSeq
-      lineIdxLines = P.zip (toList remainingLines) [idx..]
-      isBlankLine (line, _) = all isSpace line
-  in case P.filter isBlankLine lineIdxLines of
-    (_, i):_  -> Just i
-    otherwise -> Nothing
-
-posOfNextBlankLineAfter :: Buffer -> Pos -> Pos
-posOfNextBlankLineAfter buf pos=
-  case idxOfNextBlankLineLS (lineSeq buf) ((line pos) + 1) of
-    Just i  -> Pos i 0
-    Nothing -> pos
 
 bufferDropLines :: Int -> Buffer -> Buffer
 bufferDropLines lines buffer =
@@ -188,5 +174,17 @@ posPrevPara :: Buffer -> Pos -> Pos
 posPrevPara buf pos =
   case idxParasBefore (lineSeq buf) (line pos) of
     idx:_ -> Pos idx 0
+    otherwise -> pos
+
+posNextWord :: Buffer -> Pos -> Pos
+posNextWord buf pos =
+  case idxWordsAfter (lineAt (line pos) buf) (row pos) of
+    idx:_ -> Pos (line pos) idx
+    otherwise -> pos
+
+posPrevWord :: Buffer -> Pos -> Pos
+posPrevWord buf pos =
+  case idxWordsBefore (lineAt (line pos) buf) (row pos) of
+    idx:_ -> Pos (line pos) idx
     otherwise -> pos
 
