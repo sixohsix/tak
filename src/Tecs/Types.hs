@@ -70,6 +70,10 @@ data Key = KeyChar Char
          | KeyDel
          | KeyPageDown
          | KeyPageUp
+         | KeyHome
+         | KeyEnd
+         | KeyCtrlHome
+         | KeyCtrlEnd
            deriving (Show, Eq, Ord)
 data Event = KeyEvent Key
            | TimeoutEvent

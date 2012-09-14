@@ -57,10 +57,14 @@ cursesKeyToEvt C.KeyRight         = KeyEvent KeyRight
 cursesKeyToEvt C.KeyEnter         = KeyEvent KeyEnter
 cursesKeyToEvt C.KeyNPage         = KeyEvent KeyPageDown
 cursesKeyToEvt C.KeyPPage         = KeyEvent KeyPageUp
+cursesKeyToEvt C.KeyHome          = KeyEvent KeyHome
+cursesKeyToEvt C.KeyEnd           = KeyEvent KeyEnd
 cursesKeyToEvt (C.KeyUnknown 562) = KeyEvent KeyCtrlUp
 cursesKeyToEvt (C.KeyUnknown 541) = KeyEvent KeyCtrlLeft
 cursesKeyToEvt (C.KeyUnknown 556) = KeyEvent KeyCtrlRight
 cursesKeyToEvt (C.KeyUnknown 521) = KeyEvent KeyCtrlDown
+cursesKeyToEvt (C.KeyUnknown 531) = KeyEvent KeyCtrlHome
+cursesKeyToEvt (C.KeyUnknown 526) = KeyEvent KeyCtrlEnd
 cursesKeyToEvt (C.KeyUnknown (-1))= TimeoutEvent
 cursesKeyToEvt _                  = NoEvent
 

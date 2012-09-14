@@ -46,7 +46,9 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent KeyPageDown,       ie cursorPageDown),
   (KeyEvent KeyPageUp,         ie cursorPageUp),
   (KeyEvent $ KeyCtrlChar 'A', ie cursorBeginningOfLine),
+  (KeyEvent KeyHome,           ie cursorBeginningOfLine),
   (KeyEvent $ KeyCtrlChar 'E', ie cursorEndOfLine),
+  (KeyEvent KeyEnd,            ie cursorEndOfLine),
   (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
   (KeyEvent $ KeyCtrlChar 'K', ie killLine),
@@ -58,7 +60,9 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent KeyCtrlUp,         ie cursorPrevPara),
   (KeyEvent KeyCtrlDown,       ie cursorNextPara),
   (KeyEvent KeyCtrlRight,      ie cursorNextWord),
-  (KeyEvent KeyCtrlLeft,       ie cursorPrevWord)
+  (KeyEvent KeyCtrlLeft,       ie cursorPrevWord),
+  (KeyEvent KeyCtrlHome,       ie cursorFirstPos),
+  (KeyEvent KeyCtrlEnd,        ie cursorLastPos)
   ] handleOther
 
 

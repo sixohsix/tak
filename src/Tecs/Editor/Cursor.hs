@@ -87,4 +87,6 @@ cursorNextPara = updateCursor posNextPara
 cursorPrevPara = updateCursor posPrevPara
 cursorNextWord = updateCursor posNextWord
 cursorPrevWord = updateCursor posPrevWord
+cursorFirstPos = updateCursor posFirstPos
+cursorLastPos  = updateCursor posLastPos
 

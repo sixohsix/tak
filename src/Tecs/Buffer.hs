@@ -196,3 +196,9 @@ posPrevWord buf pos =
                          then Pos (l - 1) ((P.length $ lineAt (l - 1) buf) - 1)
                          else pos
 
+posFirstPos :: Buffer -> Pos -> Pos
+posFirstPos buf _ = idxFirstPos $ lineSeq buf
+
+posLastPos :: Buffer -> Pos -> Pos
+posLastPos buf _ = idxLastPos $ lineSeq buf
+
