@@ -27,7 +27,7 @@ deleteChar st =
       st' = pushUndo st
   in if r == 0 && l > 0
      then let concattedBuf = concatLine buf (line cursor)
-              cursRow = length (lineAt (l - 1) concattedBuf)
+              cursRow = length (lineAt (l - 1) buf)
           in st' { buffer = concattedBuf,
                    cursorPos = Pos (l - 1) cursRow }
      else st' { buffer = deleteCharFromBuffer buf cursor,
