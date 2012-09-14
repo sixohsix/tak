@@ -81,3 +81,4 @@ instance Editor InfoLineEditor where
 
 setInfoLineContent infoLineEditor str =
   infoLineEditor { infoBuffer = strToBuffer str }
+

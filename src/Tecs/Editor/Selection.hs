@@ -94,7 +94,7 @@ pasteAtInsertPos gst
           buf = buffer ed
           iPos = insertPos ed
           pasteSeq = (clipboard gst) !! 0
-      in gst { editor = ed { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq } }
+      in gst { editor = (pushUndo ed) { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq } }
 
 tmpWriteClipboard gst = do
   writeFile "./clip.tmp" $ lineSeqToStr ((clipboard gst) !! 0)

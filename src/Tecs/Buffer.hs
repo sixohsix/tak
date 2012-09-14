@@ -77,7 +77,7 @@ deleteCharFromBuffer buf (Pos y x) =
       newBefore = if not $ P.null before
                   then P.take (P.length before - 1) before
                   else before
-  in buf { lineSeq = Seq.update y (newBefore ++ after) seq}
+  in buf { lineSeq = Seq.update y (newBefore ++ after) seq }
 
 insertLinebreakIntoBuffer :: Buffer -> Pos -> Buffer
 insertLinebreakIntoBuffer buf (Pos y x) =
@@ -124,8 +124,8 @@ cutSelectionLS src ((Pos sl sr), (Pos el er)) =
       (lastLine, after) = splitOne rem2
       (outLine, afterLine) = P.splitAt er lastLine
       si = Seq.singleton
-  in (if sl == el 
-         then si (inLine ++ outLine)
+  in (if sl == el
+         then si (P.take (er - sr) inLine)
          else mconcat [si inLine, inLines, si outLine],
       mconcat [before, si (beforeLine ++ afterLine), after])
 
@@ -144,7 +144,7 @@ insertLineSeqIntoBuffer :: Buffer -> Pos -> Seq.Seq String -> Buffer
 insertLineSeqIntoBuffer buf pos inSeq =
   let Pos l r   = posWithinBuffer buf pos
       seq       = lineSeq buf
-      seqBefore = Seq.take (l - 1) seq
+      seqBefore = Seq.take l seq
       seqAfter  = Seq.drop (l + 1) seq
       line      = Seq.index seq l
       lineBefore = P.take r line
@@ -154,6 +154,7 @@ insertLineSeqIntoBuffer buf pos inSeq =
      1 -> buf { lineSeq = mconcat [seqBefore,
                                    Seq.singleton (lineBefore ++ (Seq.index inSeq 0) ++ lineAfter),
                                    seqAfter] }
+--                cursorPos = pos { row = r + (P.length $ Seq.index inSeq 0) } }
      otherwise ->
          let firstLine = Seq.index inSeq 0
              lastLine  = Seq.index inSeq ((Seq.length inSeq) - 1)
@@ -163,6 +164,7 @@ insertLineSeqIntoBuffer buf pos inSeq =
                                      midLines,
                                      Seq.singleton (lastLine ++ lineAfter),
                                      seqAfter] }
+--                  cursorPos = Pos (l + Seq.length inSeq) (P.length lastLine) }
 
 posNextPara :: Buffer -> Pos -> Pos
 posNextPara buf pos =

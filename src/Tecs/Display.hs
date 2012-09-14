@@ -31,6 +31,8 @@ withCurses f = do
   (y, x) <- getScreenSize
   C.move (y-1) (x-1)
   C.move 0 0
+  C.wAddStr C.stdScr "Loading..."
+  refresh
   f
   C.endWin
   CH.end
