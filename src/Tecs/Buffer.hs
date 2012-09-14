@@ -178,13 +178,21 @@ posPrevPara buf pos =
 
 posNextWord :: Buffer -> Pos -> Pos
 posNextWord buf pos =
-  case idxWordsAfter (lineAt (line pos) buf) (row pos) of
-    idx:_ -> Pos (line pos) idx
-    otherwise -> pos
+  let Pos l r = pos
+  in case idxWordsAfter (lineAt l buf) r of
+       idx:_ -> Pos l idx
+       otherwise -> if l < numLines buf
+                    then Pos (l + 1) 0
+                    else pos
 
 posPrevWord :: Buffer -> Pos -> Pos
 posPrevWord buf pos =
-  case idxWordsBefore (lineAt (line pos) buf) (row pos) of
-    idx:_ -> Pos (line pos) idx
-    otherwise -> pos
+  let Pos l r = pos
+  in case idxWordsBefore (lineAt (line pos) buf) (row pos) of
+       idx:_ -> Pos (line pos) idx
+       otherwise -> if r > 0
+                    then Pos l 0
+                    else if l > 0
+                         then Pos (l - 1) ((P.length $ lineAt (l - 1) buf) - 1)
+                         else pos
 
