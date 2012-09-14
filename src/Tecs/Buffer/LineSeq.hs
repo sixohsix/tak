@@ -1,6 +1,7 @@
 module Tecs.Buffer.LineSeq where
 
 import Tecs.Types
+import Tecs.Util (comboBreakers)
 
 import qualified Data.Sequence as Seq
 import Data.Char (isSpace)
@@ -12,16 +13,6 @@ isBlank = all isSpace
 
 isNotBlank :: String -> Bool
 isNotBlank = not . isBlank
-
-comboBreakers :: [(String -> Bool)] -> LineSeq -> [LineIdx]
-comboBreakers fs lSeq =
-  cBreakers fs (zip [0..] (toList lSeq))
-  where
-    cBreakers _ [] = []
-    cBreakers [] ((idx, _):rest) = idx:(cBreakers fs rest)
-    cBreakers (f:ff) ((idx, line):rest) = case f line of
-      True  -> cBreakers (f:ff) rest
-      False -> cBreakers ff ((idx, line):rest)
 
 idxParasAfter :: LineSeq -> LineIdx -> [LineIdx]
 idxParasAfter ls idx =
