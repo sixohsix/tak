@@ -1,9 +1,9 @@
-module Tecs.Buffer.Line where
+module Tak.Buffer.Line where
 
 import Data.Char (isSpace)
 
-import Tecs.Types
-import Tecs.Util (comboBreakers)
+import Tak.Types
+import Tak.Util (comboBreakers)
 
 isNotSpace = not . isSpace
 

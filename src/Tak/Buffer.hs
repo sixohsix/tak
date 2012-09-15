@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Tecs.Buffer where
+module Tak.Buffer where
 
 import Prelude as P
 import Data.Sequence ((><), (|>), (<|))
@@ -9,13 +9,13 @@ import Data.Char (isSpace)
 import Data.Foldable (toList)
 import Data.Monoid (mconcat)
 
-import Tecs.Types as TT
-import Tecs.Util
-import Tecs.Display
-import Tecs.Text
+import Tak.Types as TT
+import Tak.Util
+import Tak.Display
+import Tak.Text
 
-import Tecs.Buffer.LineSeq
-import Tecs.Buffer.Line
+import Tak.Buffer.LineSeq
+import Tak.Buffer.Line
 
 
 empty :: Buffer

@@ -1,7 +1,7 @@
-module Tecs.Buffer.LineSeq (idxParasAfter, idxParasBefore, idxFirstPos, idxLastPos) where
+module Tak.Buffer.LineSeq (idxParasAfter, idxParasBefore, idxFirstPos, idxLastPos) where
 
-import Tecs.Types
-import Tecs.Util (comboBreakers)
+import Tak.Types
+import Tak.Util (comboBreakers)
 
 import qualified Data.Sequence as Seq
 import Data.Char (isSpace)

@@ -1,4 +1,4 @@
-module Tecs.Types where
+module Tak.Types where
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq

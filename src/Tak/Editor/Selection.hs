@@ -1,9 +1,9 @@
-module Tecs.Editor.Selection where
+module Tak.Editor.Selection where
 
-import Tecs.Types
-import Tecs.Buffer
-import Tecs.Editor.Cursor
-import Tecs.Editor.Undo (pushUndo)
+import Tak.Types
+import Tak.Buffer
+import Tak.Editor.Cursor
+import Tak.Editor.Undo (pushUndo)
 import Data.List (sort)
 import qualified Data.Sequence as Seq
 

@@ -1,5 +1,5 @@
-Name:Tecs
-Version:0.1
+Name:Tak
+Version:0.2
 Cabal-Version: >= 1.2
 License:MIT
 Author:Mike Verdone
@@ -8,9 +8,9 @@ Category:
 Synopsis:A text editor
 Build-Type: Simple
 
-Executable tes
+Executable tak
   Hs-Source-Dirs: src
-  Main-Is: Tecs/Tes.hs
+  Main-Is: Tak/Main.hs
   Build-Depends: base >= 4
                , bytestring >= 0.9
                , containers >= 0.4

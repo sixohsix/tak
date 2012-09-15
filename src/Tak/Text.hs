@@ -1,7 +1,7 @@
-module Tecs.Text where
+module Tak.Text where
 
 import Prelude
-import Tecs.Types
+import Tak.Types
 
 wrapString :: Int -> String -> [String]
 wrapString _ "" = [""]

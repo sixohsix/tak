@@ -1,9 +1,9 @@
-module Tecs.Editor.Edit where
+module Tak.Editor.Edit where
 
-import Tecs.Types
-import Tecs.Buffer
-import Tecs.Editor.Cursor
-import Tecs.Editor.Undo
+import Tak.Types
+import Tak.Buffer
+import Tak.Editor.Cursor
+import Tak.Editor.Undo
 
 
 insertChar :: Char -> SimpleEditor -> SimpleEditor

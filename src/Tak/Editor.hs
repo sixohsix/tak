@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module Tecs.Editor where
+module Tak.Editor where
 
 import Prelude as P
 import qualified Data.Text as DT
@@ -8,14 +8,14 @@ import qualified Data.Text.IO as DTIO
 import System.Directory (doesFileExist)
 import Control.Arrow ( (>>>) )
 
-import Tecs.Types as TT
-import Tecs.Text
-import Tecs.Buffer
-import Tecs.Display
-import Tecs.Editor.Cursor
-import Tecs.Editor.Undo as Undo
-import Tecs.Editor.Edit
-import Tecs.Editor.Selection
+import Tak.Types as TT
+import Tak.Text
+import Tak.Buffer
+import Tak.Display
+import Tak.Editor.Cursor
+import Tak.Editor.Undo as Undo
+import Tak.Editor.Edit
+import Tak.Editor.Selection
 
 isModified = Undo.isModified
 

@@ -1,8 +1,8 @@
-module Tecs.Editor.Cursor where
+module Tak.Editor.Cursor where
 
-import Tecs.Util
-import Tecs.Types
-import Tecs.Buffer
+import Tak.Util
+import Tak.Types
+import Tak.Buffer
 
 insertPos :: SimpleEditor -> Pos
 insertPos ed = posWithinBuffer (buffer ed) (cursorPos ed)

@@ -1,4 +1,4 @@
-module Tecs.Display where
+module Tak.Display where
 
 import qualified UI.HSCurses.CursesHelper as CH
 import qualified UI.HSCurses.Curses as C
@@ -13,8 +13,8 @@ import qualified Data.Text as DT
 import qualified Data.Text.Encoding as DTE
 import Foreign.C.Types (CInt)
 
-import Tecs.Types
-import Tecs.Util (clamp)
+import Tak.Types
+import Tak.Util (clamp)
 
 import Debug.Trace (trace)
 

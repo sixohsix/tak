@@ -1,7 +1,7 @@
-module Tecs.Editor.Undo where
+module Tak.Editor.Undo where
 
-import Tecs.Types
-import Tecs.Editor.Cursor
+import Tak.Types
+import Tak.Editor.Cursor
 
 
 pushUndo :: SimpleEditor -> SimpleEditor

@@ -7,11 +7,11 @@ import qualified Data.Map as Map
 import System.Environment (getArgs)
 import Data.Monoid (mconcat)
 
-import Tecs.Types
-import Tecs.Display
-import Tecs.Editor
-import Tecs.Editor.Cursor (insertPos)
-import Tecs.Buffer
+import Tak.Types
+import Tak.Display
+import Tak.Editor
+import Tak.Editor.Cursor (insertPos)
+import Tak.Buffer
 
 import Debug.Trace (trace)
 

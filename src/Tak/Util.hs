@@ -1,6 +1,6 @@
-module Tecs.Util where
+module Tak.Util where
 
-import Tecs.Types
+import Tak.Types
 import Data.Foldable (Foldable, toList)
 
 
