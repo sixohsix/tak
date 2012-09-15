@@ -42,6 +42,11 @@ bufferToLines buf = toList (lineSeq buf)
 lineAt :: Int -> Buffer -> String
 lineAt x buf = Seq.index (lineSeq buf) x
 
+
+updateLineSeq :: (LineSeq -> LineSeq) -> Buffer -> Buffer
+updateLineSeq f buf = buf { lineSeq = f $ lineSeq buf }
+
+
 bufferDropLines :: Int -> Buffer -> Buffer
 bufferDropLines lines buffer =
   handleEmptySeq $ Buffer $ Seq.drop lines (lineSeq buffer)
@@ -140,7 +145,7 @@ getSelection b r = fst $ cutSelection b r
 delSelection :: Buffer -> (Pos, Pos) -> Buffer
 delSelection b r = snd $ cutSelection b r
 
-insertLineSeqIntoBuffer :: Buffer -> Pos -> Seq.Seq String -> Buffer
+insertLineSeqIntoBuffer :: Buffer -> Pos -> LineSeq -> Buffer
 insertLineSeqIntoBuffer buf pos inSeq =
   let Pos l r   = posWithinBuffer buf pos
       seq       = lineSeq buf

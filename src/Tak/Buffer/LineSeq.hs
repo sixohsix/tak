@@ -7,6 +7,8 @@ import qualified Data.Sequence as Seq
 import Data.Char (isSpace)
 import Data.Foldable (toList)
 
+strToLineSeq :: String -> LineSeq
+strToLineSeq s = Seq.fromList $ lines s
 
 isBlank :: String -> Bool
 isBlank = all isSpace

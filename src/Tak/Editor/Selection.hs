@@ -46,7 +46,7 @@ applyIfReasonableSelection f st =
       firstRange = rs !! 0
   in if not $ null rs
      then f st'
-     else st'
+     else st
 
 deleteSelection :: SimpleEditor -> SimpleEditor
 deleteSelection =

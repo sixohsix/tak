@@ -7,6 +7,7 @@ import Data.Foldable (Foldable, toList)
 clamp :: Int -> Int -> Int -> Int
 clamp low high = max low . min high
 
+
 comboBreakers :: Foldable t => [(a -> Bool)] -> t a -> [Int]
 comboBreakers fs lSeq =
   cBreakers fs (zip [0..] (toList lSeq))
