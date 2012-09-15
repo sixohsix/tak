@@ -7,6 +7,7 @@ import qualified Data.Text as DT
 import qualified Data.Text.IO as DTIO
 import System.Directory (doesFileExist)
 import Control.Arrow ( (>>>) )
+import Control.Lens
 
 import Tak.Types as TT
 import Tak.Text
@@ -26,7 +27,7 @@ instance Editor SimpleEditor where
     setCursor (screenPos editor)
 
 ignoreEvt :: (SimpleEditor -> SimpleEditor) -> GlobalState -> IO GlobalState
-ignoreEvt f gst = return $ gst { editor = f (editor gst) }
+ignoreEvt f evt = return $ over editor f evt
 
 ie = ignoreEvt
 

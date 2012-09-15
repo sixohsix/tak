@@ -6,6 +6,7 @@ import qualified Control.Monad.State as S
 import qualified Data.Map as Map
 import System.Environment (getArgs)
 import Data.Monoid (mconcat)
+import Control.Lens
 
 import Tak.Types
 import Tak.Display
@@ -18,11 +19,11 @@ import Debug.Trace (trace)
 topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 topEvtMap =
   let m = Map.fromList [
-        (KeyEvent $ KeyCtrlChar 'Q', \st -> return $ st { shouldQuit = True }),
+        (KeyEvent $ KeyCtrlChar 'Q', \st -> return $ set shouldQuit True st),
         (KeyEvent $ KeyCtrlChar 'S', \st -> do
-            let ed = editor st
+            let ed = view editor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
-            return st { editor = ed { lastSavePtr = 0 } }
+            return $ over editor (\ed -> ed { lastSavePtr = 0 }) st
             )
         ]
   in DefaultMap m (lookupWithDefault editorEvtMap)
@@ -33,11 +34,11 @@ handleEvt globalState evt = (lookupWithDefault topEvtMap evt) globalState
 usage :: String
 usage = unlines [
   "USAGE",
-  "  tes <file>"
+  "  tak <file>"
   ]
 
 infoLineContentFor globalState =
-  let ed = editor globalState
+  let ed = view editor globalState
       modStr  = if isModified ed
                 then "*"
                 else " "
@@ -52,21 +53,21 @@ infoLineContentFor globalState =
   in mconcat ["  ", modStr, "  ", fn, " ", posStr, " ", selStr]
 
 renderAndWaitEvent :: GlobalState -> IO Event
-renderAndWaitEvent st = do
+renderAndWaitEvent gst = do
   (y, x) <- getScreenSize
-  renderEditor (Box (y - 1) 0       1 x) (infoLine st)
-  renderEditor (Box 0       0 (y - 1) x) (editor st)
+  renderEditor (Box (y - 1) 0       1 x) (view infoLine gst)
+  renderEditor (Box 0       0 (y - 1) x) (view editor gst)
   refresh
   waitEvent
 
 mainLoop globalState = do
   (y, x) <- getScreenSize
-  let infoL     = infoLine globalState
-      globalState' = globalState { editor = (editor globalState) { viewHeight = y - 1 },
-                             infoLine = setInfoLineContent infoL (infoLineContentFor globalState) }
+  let infoL        = view infoLine globalState
+      globalState' = (over editor (\ed -> ed { viewHeight = y - 1 }))
+                       $ (over infoLine (\il -> setInfoLineContent il $ infoLineContentFor globalState)) globalState
   evt <- renderAndWaitEvent globalState'
   nextGlobalState <- handleEvt globalState' evt
-  if (shouldQuit nextGlobalState)
+  if (view shouldQuit nextGlobalState)
     then return ()
     else mainLoop nextGlobalState
 
@@ -77,7 +78,7 @@ main = do
 startEditor args = do
   if null args
     then putStrLn usage
-    else do editor <- simpleEditorFromFile (args !! 0)
-            withCurses $ mainLoop (defaultGlobalState { editor = editor })
+    else do ed <- simpleEditorFromFile (args !! 0)
+            withCurses $ mainLoop $ set editor ed defaultGlobalState
   return ()
 

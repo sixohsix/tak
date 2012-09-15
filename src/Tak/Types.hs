@@ -1,8 +1,11 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Tak.Types where
 
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified Control.Monad.State as St
+import Control.Lens (makeLenses)
 
 type Line = String
 
@@ -122,11 +125,14 @@ data InfoLineEditor = InfoLineEditor {
 defaultInfoLineEditor = InfoLineEditor defaultBuffer
 
 data GlobalState = GlobalState {
-  shouldQuit :: Bool,
-  clipboard :: [Seq.Seq String],
-  editor :: SimpleEditor,
-  infoLine :: InfoLineEditor
+  _shouldQuit :: Bool,
+  _clipboard :: [Seq.Seq String],
+  _editor :: SimpleEditor,
+  _infoLine :: InfoLineEditor
   }
+
+makeLenses ''GlobalState
+
 defaultGlobalState =
   GlobalState False [] defaultSimpleEditor defaultInfoLineEditor
 

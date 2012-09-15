@@ -7,6 +7,9 @@ import Tak.Editor.Undo (pushUndo)
 import Data.List (sort)
 import qualified Data.Sequence as Seq
 
+import Control.Lens
+
+
 startSelecting :: SimpleEditor -> SimpleEditor
 startSelecting st =
   st { selState = (selState st) { openRange = Just (insertPos st) } }
@@ -77,32 +80,32 @@ forgetOpenRangeOrRanges st =
 
 copyReasonableSelection :: GlobalState -> GlobalState
 copyReasonableSelection gst =
-  let ed    = finishSelecting (editor gst)
+  let ed    = finishSelecting (view editor gst)
       selSt = selState ed
       sel   = (ranges selSt) !! 0
       buf   = buffer ed
+      cb    = view clipboard gst
   in if null (ranges selSt)
      then gst
-     else gst { clipboard = (getSelection buf sel):(clipboard gst),
-                editor = ed }
+     else (set clipboard ((getSelection buf sel):cb)) $ (set editor ed) gst
 
 pasteAtInsertPos :: GlobalState -> GlobalState
 pasteAtInsertPos gst
-  | null (clipboard gst) = gst
+  | null (view clipboard gst) = gst
   | otherwise =
-      let ed = editor gst
+      let ed = view editor gst
           buf = buffer ed
           iPos = insertPos ed
           Pos l r = iPos
-          pasteSeq = (clipboard gst) !! 0
+          pasteSeq = (view clipboard gst) !! 0
           lPasteSeq = Seq.length pasteSeq
           isOneLinePaste = lPasteSeq == 1
           lastLineLen = length $ Seq.index pasteSeq (lPasteSeq - 1)
-      in gst { editor = (pushUndo ed) { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq,
-                                        cursorPos = Pos (l + (Seq.length pasteSeq) - 1)
-                                                        (if isOneLinePaste then (r + lastLineLen) else lastLineLen) } }
+      in (set editor $ (pushUndo ed) { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq,
+                                       cursorPos = Pos (l + (Seq.length pasteSeq) - 1)
+                                                       (if isOneLinePaste then (r + lastLineLen) else lastLineLen) }) gst
 
 tmpWriteClipboard gst = do
-  writeFile "./clip.tmp" $ lineSeqToStr ((clipboard gst) !! 0)
+  writeFile "./clip.tmp" $ lineSeqToStr ((view clipboard gst) !! 0)
   return gst
 
