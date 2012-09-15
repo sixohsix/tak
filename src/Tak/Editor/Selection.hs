@@ -18,8 +18,17 @@ cancelSelecting :: SimpleEditor -> SimpleEditor
 cancelSelecting st =
   st { selState = (selState st) { openRange = Nothing } }
 
+
 finishSelecting :: SimpleEditor -> SimpleEditor
 finishSelecting st =
+  (maybe st 
+         (\newRange -> st { selState = (selState st) { ranges = newRange:(ranges $ selState st),
+                                                       openRange = Nothing } })
+         $ currentRegion st)
+
+
+currentRegion :: SimpleEditor -> Maybe (Pos, Pos)
+currentRegion st =
   let selSt              = selState st
       Just rangeStartPos = openRange selSt
   in case openRange selSt of
@@ -28,10 +37,9 @@ finishSelecting st =
           rangePoss    = sort [rangeStartPos, rangeStopPos]
           newRange     = (rangePoss !! 0, rangePoss !! 1)
       in if (fst newRange) /= (snd newRange)
-         then st { selState = selSt { ranges = newRange:(ranges selSt),
-                                      openRange = Nothing } }
-         else st
-    Nothing -> st
+         then Just newRange
+         else Nothing
+    Nothing -> Nothing
 
 startOrFinishOrCancelSelecting :: SimpleEditor -> SimpleEditor
 startOrFinishOrCancelSelecting st =

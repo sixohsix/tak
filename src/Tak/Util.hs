@@ -18,3 +18,10 @@ comboBreakers fs lSeq =
       True  -> cBreakers (f:ff) rest
       False -> cBreakers ff ((idx, line):rest)
 
+
+moveRelative :: Pos -> Pos -> Pos
+moveRelative (Pos ol or) (Pos dl dr) =
+  if dl == 1
+     then Pos ol (or + dr)
+     else Pos (ol + dl) dr
+

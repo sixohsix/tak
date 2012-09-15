@@ -1,4 +1,4 @@
-module Tak.Buffer.LineSeq (idxParasAfter, idxParasBefore, idxFirstPos, idxLastPos) where
+module Tak.Buffer.LineSeq (idxParasAfter, idxParasBefore, idxFirstPos, idxLastPos, strToLineSeq) where
 
 import Tak.Types
 import Tak.Util (comboBreakers)

@@ -1,7 +1,9 @@
 module Tak.Editor.Replace where
 
-import System.IO (hSetBinaryMode, forkIO, hGetContents, hPutStr)
-import System.Process (runInteractiveProcess)
+import System.IO (hSetBinaryMode, hGetContents, hPutStr)
+import System.Process (runInteractiveCommand)
+import Control.Concurrent (forkIO)
+import Control.Lens
 
 import Tak.Types
 import Tak.Buffer
@@ -11,11 +13,12 @@ import Tak.Editor.Selection
 
 updateActiveBuffer :: (Buffer -> IO Buffer) -> GlobalState -> IO GlobalState
 updateActiveBuffer f gst =
-  (f $ buffer $ editor gst) >>= (\newBuf -> gst { editor = (editor gst) { buffer = newBuf } })
+  traverseOf editor (\ed -> (f $ buffer ed) >>= (\newBuf -> return $ ed { buffer = newBuf })) gst
+
 
 processCmd :: String -> String -> IO String
 processCmd command inputStr = do
-  (inp, out, err, pid) <- runInteractiveProcess command
+  (inp, out, err, pid) <- runInteractiveCommand command
   hSetBinaryMode inp False
   hSetBinaryMode out False
   forkIO (hPutStr inp inputStr)
@@ -28,14 +31,18 @@ processLineSeqIO f lSeq = (f $ lineSeqToStr lSeq) >>= (return . strToLineSeq)
 
 replaceRegion :: (LineSeq -> IO LineSeq) -> Buffer -> (Pos, Pos) -> IO Buffer
 replaceRegion f buf r@(rStartPos, _) = do
-  let ls, cutBuf = cutSelection buf r
+  let (ls, cutBuf) = cutSelection buf r
   replacementLs <- f ls
-  return $ insertLineSeqIntoBuffer buf rStartPos ls
+  return $ insertLineSeqIntoBuffer cutBuf rStartPos replacementLs
 
 
 repRegionWithShellCmd :: String -> Buffer -> (Pos, Pos) -> IO Buffer
-repRegionWithShellCmd cmd = replaceRegion (processLineSeqIO . (processCmd cmd))
+repRegionWithShellCmd cmd = replaceRegion (processLineSeqIO $ processCmd cmd)
+
 
 replaceRegionWithShellCmd :: String -> GlobalState -> IO GlobalState
 replaceRegionWithShellCmd cmd gst =
-  updateActiveBuffer (
+  case currentRegion (view editor gst) of
+    Nothing -> return $ gst
+    Just region -> updateActiveBuffer (\buf -> repRegionWithShellCmd cmd buf region) gst
+

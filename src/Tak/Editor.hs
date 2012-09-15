@@ -17,6 +17,7 @@ import Tak.Editor.Cursor
 import Tak.Editor.Undo as Undo
 import Tak.Editor.Edit
 import Tak.Editor.Selection
+import Tak.Editor.Replace
 
 isModified = Undo.isModified
 
@@ -63,7 +64,8 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent KeyCtrlRight,      ie cursorNextWord),
   (KeyEvent KeyCtrlLeft,       ie cursorPrevWord),
   (KeyEvent KeyCtrlHome,       ie cursorFirstPos),
-  (KeyEvent KeyCtrlEnd,        ie cursorLastPos)
+  (KeyEvent KeyCtrlEnd,        ie cursorLastPos),
+  (KeyEvent $ KeyCtrlChar 'P', replaceRegionWithShellCmd "echo hello")
   ] handleOther
 
 
