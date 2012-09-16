@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude, ParallelListComp #-}
 
 module Tak.Buffer where
 
@@ -60,7 +60,7 @@ posWithinBuffer buf (Pos y x) =
 
 
 
-renderLine (idx, str, mHlReg) = do
+renderLine idx str mHlReg = do
   let hlRangeStart = maybe (-1) (\(Range (Pos l r) _) -> if l == idx then r else (-1)) mHlReg
       hlRangeEnd   = maybe (-1) (\(Range _ (Pos l r)) -> if l == idx then r else (-1)) mHlReg
       rangeStarts  = hlRangeStart > (-1)
@@ -74,8 +74,10 @@ renderBuffer :: WrapMode -> Buffer -> Maybe Range -> Int -> Int -> RenderW ()
 renderBuffer wrapMode buffer mRange height width =
   let lineStrs = linesToFixedLengthStrs wrapMode width (bufferToLines buffer)
       yPosL = [0..height - 1]
-  in do mapM renderLine (P.zip3 yPosL (lineStrs ++ (repeat "")) (repeat mRange))
-        return ()
+  in sequence_ [ renderLine y line mRng
+               | y <- yPosL
+               | line <- lineStrs ++ (repeat "")
+               | mRng <- repeat mRange ]
 
 
 insertCharIntoBuffer :: Buffer -> Pos -> Char -> Buffer
