@@ -19,4 +19,6 @@ Executable tak
                , setlocale >= 0.0.3
                , mtl >= 2
                , text >= 0.11
+               , lens >= 2.9
+               , process >= 1.1
 

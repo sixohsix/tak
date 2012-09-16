@@ -26,7 +26,7 @@ instance Editor SimpleEditor where
   render editor height width = do
     let lScroll = lineScroll editor
         displayedBuffer = bufferDropLines (lineScroll editor) (buffer editor)
-        mRange = maybe Nothing (\r -> Just $ r `shiftRange` (Pos lScroll 0)) (currentRegion editor)
+        mRange = maybe Nothing (\r -> Just $ r `shiftRange` (Pos (-lScroll) 0)) (currentRegion editor)
     renderBuffer Crop displayedBuffer mRange height width
     setCursor (screenPos editor)
 
