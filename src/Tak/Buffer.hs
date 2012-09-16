@@ -8,6 +8,7 @@ import qualified Data.Sequence as Seq
 import Data.Char (isSpace)
 import Data.Foldable (toList)
 import Data.Monoid (mconcat)
+import Control.Monad (when)
 
 import Tak.Types as TT
 import Tak.Util
@@ -57,12 +58,23 @@ posWithinBuffer buf (Pos y x) =
       r = clamp 0 (length $ lineAt l buf) x
   in Pos l r
 
-renderBuffer :: WrapMode -> Buffer -> Int -> Int -> RenderW ()
-renderBuffer wrapMode buffer height width =
+
+
+renderLine (idx, str, mHlReg) = do
+  let hlRangeStart = maybe (-1) (\(Range (Pos l r) _) -> if l == idx then r else (-1)) mHlReg
+      hlRangeEnd   = maybe (-1) (\(Range _ (Pos l r)) -> if l == idx then r else (-1)) mHlReg
+      rangeStarts  = hlRangeStart > (-1)
+      rangeEnds    = hlRangeEnd   > (-1)
+  printStr (Pos idx 0) str
+  when (hlRangeStart > (-1)) (invertText >>  (printStr (Pos idx hlRangeStart) (P.drop hlRangeStart str)))
+  when (hlRangeEnd   > (-1)) (regularText >> (printStr (Pos idx hlRangeEnd)   (P.drop hlRangeEnd   str)))
+
+
+renderBuffer :: WrapMode -> Buffer -> Maybe Range -> Int -> Int -> RenderW ()
+renderBuffer wrapMode buffer mRange height width =
   let lineStrs = linesToFixedLengthStrs wrapMode width (bufferToLines buffer)
       yPosL = [0..height - 1]
-      p (yPos, str) = printStr (Pos yPos 0) str
-  in do mapM p (P.zip yPosL (lineStrs ++ (repeat "")))
+  in do mapM renderLine (P.zip3 yPosL (lineStrs ++ (repeat "")) (repeat mRange))
         return ()
 
 

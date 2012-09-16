@@ -41,6 +41,11 @@ data Pos = Pos {
 defaultPos :: Pos
 defaultPos = Pos 0 0
 
+data Range = Range {
+  start :: Pos,
+  end :: Pos
+  }
+
 data RenderAction = PrintStr Pos String
                   | SetCursor Pos
                   | SetColorPair Int

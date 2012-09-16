@@ -10,6 +10,7 @@ import Control.Arrow ( (>>>) )
 import Control.Lens
 
 import Tak.Types as TT
+import Tak.Range
 import Tak.Text
 import Tak.Buffer
 import Tak.Display
@@ -23,8 +24,10 @@ isModified = Undo.isModified
 
 instance Editor SimpleEditor where
   render editor height width = do
-    let displayedBuffer = bufferDropLines (lineScroll editor) (buffer editor)
-    renderBuffer Crop displayedBuffer height width
+    let lScroll = lineScroll editor
+        displayedBuffer = bufferDropLines (lineScroll editor) (buffer editor)
+        mRange = maybe Nothing (\r -> Just $ r `shiftRange` (Pos lScroll 0)) (currentRegion editor)
+    renderBuffer Crop displayedBuffer mRange height width
     setCursor (screenPos editor)
 
 ignoreEvt :: (SimpleEditor -> SimpleEditor) -> GlobalState -> IO GlobalState
@@ -84,7 +87,7 @@ simpleEditorFromFile filename = do
 instance Editor InfoLineEditor where
   render editor height width = do
     invertText
-    renderBuffer Crop (infoBuffer editor) height width
+    renderBuffer Crop (infoBuffer editor) Nothing height width
 
 setInfoLineContent infoLineEditor str =
   infoLineEditor { infoBuffer = strToBuffer str }

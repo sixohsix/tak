@@ -2,6 +2,7 @@ module Tak.Editor.Selection where
 
 import Tak.Types
 import Tak.Buffer
+import Tak.Range
 import Tak.Editor.Cursor
 import Tak.Editor.Undo (pushUndo)
 import Data.List (sort)
@@ -22,22 +23,20 @@ cancelSelecting st =
 finishSelecting :: SimpleEditor -> SimpleEditor
 finishSelecting st =
   (maybe st 
-         (\newRange -> st { selState = (selState st) { ranges = newRange:(ranges $ selState st),
+         (\newRange -> st { selState = (selState st) { ranges = (asTuple newRange):(ranges $ selState st),
                                                        openRange = Nothing } })
          $ currentRegion st)
 
 
-currentRegion :: SimpleEditor -> Maybe (Pos, Pos)
+currentRegion :: SimpleEditor -> Maybe Range
 currentRegion st =
   let selSt              = selState st
       Just rangeStartPos = openRange selSt
   in case openRange selSt of
     Just rangeStartPos ->
       let rangeStopPos = insertPos st
-          rangePoss    = sort [rangeStartPos, rangeStopPos]
-          newRange     = (rangePoss !! 0, rangePoss !! 1)
-      in if (fst newRange) /= (snd newRange)
-         then Just newRange
+      in if rangeStartPos /= rangeStopPos
+         then Just $ makeRange rangeStartPos rangeStopPos
          else Nothing
     Nothing -> Nothing
 

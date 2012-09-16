@@ -25,3 +25,7 @@ moveRelative (Pos ol or) (Pos dl dr) =
      then Pos ol (or + dr)
      else Pos (ol + dl) dr
 
+
+shift :: Pos -> Pos -> Pos
+shift (Pos l0 r0) (Pos l1 r1) = Pos (l0 + l1) (r0 + r1)
+

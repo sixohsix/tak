@@ -9,6 +9,7 @@ import Tak.Types
 import Tak.Buffer
 import Tak.Buffer.LineSeq
 import Tak.Editor.Selection
+import Tak.Range
 
 
 updateActiveBuffer :: (Buffer -> IO Buffer) -> GlobalState -> IO GlobalState
@@ -44,5 +45,5 @@ replaceRegionWithShellCmd :: String -> GlobalState -> IO GlobalState
 replaceRegionWithShellCmd cmd gst =
   case currentRegion (view editor gst) of
     Nothing -> return $ gst
-    Just region -> updateActiveBuffer (\buf -> repRegionWithShellCmd cmd buf region) gst
+    Just region -> updateActiveBuffer (\buf -> repRegionWithShellCmd cmd buf $ asTuple region) gst
 
