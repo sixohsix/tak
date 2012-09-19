@@ -30,7 +30,7 @@ idxParasBefore :: LineSeq -> LineIdx -> [LineIdx]
 idxParasBefore ls idx =
   let len = Seq.length ls
       invIdx = len - idx
-      idxs = comboBreakers [isNotBlank, isBlank, isNotBlank] (Seq.drop invIdx $ Seq.reverse ls)
+      idxs = comboBreakers [isBlank, isNotBlank] (Seq.drop invIdx $ Seq.reverse ls)
   in map (\i -> len - (invIdx + i)) idxs
 
 idxFirstPos :: LineSeq -> Pos

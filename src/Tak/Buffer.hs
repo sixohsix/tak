@@ -187,13 +187,13 @@ posNextPara :: Buffer -> Pos -> Pos
 posNextPara buf pos =
   case idxParasAfter (lineSeq buf) (line pos) of
     idx:_ -> Pos idx 0
-    otherwise -> pos
+    otherwise -> posLastPos buf pos
 
 posPrevPara :: Buffer -> Pos -> Pos
 posPrevPara buf pos =
   case idxParasBefore (lineSeq buf) (line pos) of
     idx:_ -> Pos idx 0
-    otherwise -> pos
+    otherwise -> posFirstPos buf pos
 
 posNextWord :: Buffer -> Pos -> Pos
 posNextWord buf pos =
