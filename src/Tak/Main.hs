@@ -13,13 +13,17 @@ import Tak.Display
 import Tak.Editor
 import Tak.Editor.Cursor (insertPos)
 import Tak.Buffer
+import Tak.Config (updateInitialPosition)
 
 import Debug.Trace (trace)
 
 topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 topEvtMap =
   let m = Map.fromList [
-        (KeyEvent $ KeyCtrlChar 'Q', \st -> return $ set shouldQuit True st),
+        (KeyEvent $ KeyCtrlChar 'Q', \st -> do
+            let ed = view editor st
+            updateInitialPosition (fileName ed) (cursorPos ed)
+            return $ set shouldQuit True st),
         (KeyEvent $ KeyCtrlChar 'S', \st -> do
             let ed = view editor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)

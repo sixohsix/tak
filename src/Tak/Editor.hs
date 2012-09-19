@@ -19,6 +19,7 @@ import Tak.Editor.Undo as Undo
 import Tak.Editor.Edit
 import Tak.Editor.Selection
 import Tak.Editor.Replace
+import Tak.Config
 
 isModified = Undo.isModified
 
@@ -79,9 +80,11 @@ simpleEditorFromFile filename = do
        then DTIO.readFile filename
        else return DT.empty
   let buf = strToBuffer (DT.unpack s)
-  return $ defaultSimpleEditor {
+  pos <- getInitialPosition filename
+  return $ fixScroll $ defaultSimpleEditor {
     buffer = buf,
-    fileName = filename
+    fileName = filename,
+    cursorPos = pos
     }
 
 instance Editor InfoLineEditor where

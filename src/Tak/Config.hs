@@ -1,8 +1,10 @@
-module Tak.Config where
+module Tak.Config (getInitialPosition, updateInitialPosition) where
 
-import System.Directory (canonicalizePath, createDirectoryIfMissing, getHomeDirectory)
+import System.Directory (canonicalizePath, createDirectoryIfMissing, getHomeDirectory, doesFileExist)
+import qualified System.IO.Strict as Strict
 import Data.List (foldl')
 import Data.Maybe (fromJust)
+import Data.Monoid (mconcat)
 import Control.Monad (guard)
 
 import Tak.Types
@@ -40,7 +42,10 @@ loadCursorPositions = do
 
 loadCursorPositionsInFile :: String -> IO [(FilePath, Pos)]
 loadCursorPositionsInFile file = do
-  pfContents <- readFile file
+  exists <- doesFileExist file
+  pfContents <- if exists
+                then Strict.readFile file
+                else return ""
   return $ parsePosFileContents pfContents
 
 
@@ -64,13 +69,22 @@ unparsePosLine (fn, Pos l r) = mconcat [fn, " ", show l, " ", show r]
 unparsePosLines = unlines . map unparsePosLine
 
 writeCursorPositions posList = do
-  configPath <- getTaxConfigDir
+  configPath <- getTakConfigDir
   let posFilePath = configPath ++ "/cursor_positions"
   writeFile posFilePath $ unparsePosLines posList
 
-updatePosFile :: FilePath -> Pos -> IO ()
-updatePosFile fn pos = do
+updateInitialPosition :: FilePath -> Pos -> IO ()
+updateInitialPosition fp pos = do
+  absFp <- canonicalizePath fp
   posList <- loadCursorPositions
-  let newPosList = (fn, pos):(filter (\(fn', _) -> fn' /= fn))
+  let newPosList = (absFp, pos):(filter (\(fp', _) -> fp' /= fp) posList)
   writeCursorPositions newPosList
+
+getInitialPosition :: FilePath -> IO Pos
+getInitialPosition fp = do
+  absFp <- canonicalizePath fp
+  posns <- loadCursorPositions
+  return $ case filter (\(fp, _) -> fp == absFp) posns of
+             ((_, pos):_) -> pos
+             otherwise    -> Pos 0 0
 
