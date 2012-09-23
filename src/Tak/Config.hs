@@ -77,7 +77,7 @@ updateInitialPosition :: FilePath -> Pos -> IO ()
 updateInitialPosition fp pos = do
   absFp <- canonicalizePath fp
   posList <- loadCursorPositions
-  let newPosList = (absFp, pos):(filter (\(fp', _) -> fp' /= fp) posList)
+  let newPosList = (absFp, pos):(filter (\(fp', _) -> fp' /= absFp) posList)
   writeCursorPositions newPosList
 
 getInitialPosition :: FilePath -> IO Pos
