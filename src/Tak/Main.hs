@@ -53,7 +53,7 @@ infoLineContentFor globalState =
                 then "[" ++ (show $ fst firstR) ++ "," ++ (show $ snd firstR) ++ "]"
                 else ""
       Pos l r = insertPos ed
-      posStr  = mconcat [(show l), ":", (show r)]
+      posStr  = mconcat [(show (l + 1)), ":", (show r)]
   in mconcat ["  ", modStr, "  ", fn, " ", posStr, " ", selStr]
 
 renderAndWaitEvent :: GlobalState -> IO Event
