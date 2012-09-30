@@ -27,7 +27,7 @@ instance Editor SimpleEditor where
   render editor height width = do
     let lScroll = lineScroll editor
         displayedBuffer = bufferDropLines (lineScroll editor) (buffer editor)
-        mRange = maybe Nothing (\r -> Just $ r `shiftRange` (Pos (-lScroll) 0)) (currentRegion editor)
+        mRange = maybe Nothing (\r -> Just $ r `shiftRange` (Pos (-lScroll) 0)) (currentSelection editor)
     renderBuffer Crop displayedBuffer mRange height width
     setCursor (screenPos editor)
 
@@ -58,10 +58,10 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'I', ie insertTab),
   (KeyEvent $ KeyCtrlChar 'Z', ie undo),
   (KeyEvent $ KeyCtrlChar 'K', ie killLine),
-  (KeyEvent $ KeyCtrlChar '@', ie startOrFinishOrCancelSelecting),
-  (KeyEvent $ KeyCtrlChar 'X', \gst -> ((copyReasonableSelection >>> (ie deleteSelection)) gst)),
-  (KeyEvent $ KeyCtrlChar 'C', return . copyReasonableSelection),
-  (KeyEvent $ KeyCtrlChar 'G', ie forgetOpenRangeOrRanges),
+  (KeyEvent $ KeyCtrlChar '@', ie startSelecting),
+  (KeyEvent $ KeyCtrlChar 'X', \gst -> ((copySelection >>> (ie deleteSelection)) gst)),
+  (KeyEvent $ KeyCtrlChar 'C', return . copySelection),
+  (KeyEvent $ KeyCtrlChar 'G', ie cancelSelecting),
   (KeyEvent $ KeyCtrlChar 'V', return . pasteAtInsertPos),
   (KeyEvent KeyCtrlUp,         ie cursorPrevPara),
   (KeyEvent KeyCtrlDown,       ie cursorNextPara),

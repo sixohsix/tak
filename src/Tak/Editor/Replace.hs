@@ -43,7 +43,7 @@ repRegionWithShellCmd cmd = replaceRegion (processLineSeqIO $ processCmd cmd)
 
 replaceRegionWithShellCmd :: String -> GlobalState -> IO GlobalState
 replaceRegionWithShellCmd cmd gst =
-  case currentRegion (view editor gst) of
+  case currentSelection (view editor gst) of
     Nothing -> return $ gst
     Just region -> updateActiveBuffer (\buf -> repRegionWithShellCmd cmd buf $ asTuple region) gst
 
