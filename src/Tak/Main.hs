@@ -6,6 +6,7 @@ import qualified Control.Monad.State as S
 import qualified Data.Map as Map
 import System.Environment (getArgs)
 import Data.Monoid (mconcat)
+import Control.Monad (when)
 import Control.Lens
 
 import Tak.Types
@@ -27,8 +28,8 @@ topEvtMap =
         (KeyEvent $ KeyCtrlChar 'S', \st -> do
             let ed = view editor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
-            return $ over editor (\ed -> ed { lastSavePtr = 0 }) st
-            )
+            return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
+        (TimeoutEvent, return . set needsRepaint False)
         ]
   in DefaultMap m (lookupWithDefault editorEvtMap)
 
@@ -56,21 +57,26 @@ infoLineContentFor globalState =
       posStr  = mconcat [(show (l + 1)), ":", (show r)]
   in mconcat ["  ", modStr, "  ", fn, " ", posStr, " ", selStr]
 
-renderAndWaitEvent :: GlobalState -> IO Event
-renderAndWaitEvent gst = do
+
+renderAndRefresh :: GlobalState -> IO ()
+renderAndRefresh gst = do
   (y, x) <- getScreenSize
   renderEditor (Box (y - 1) 0       1 x) (view infoLine gst)
   renderEditor (Box 0       0 (y - 1) x) (view editor gst)
   refresh
+
+renderAndWaitEvent :: GlobalState -> IO Event
+renderAndWaitEvent gst = do
+  when (view needsRepaint gst) (renderAndRefresh gst)
   waitEvent
 
 mainLoop globalState = do
   (y, x) <- getScreenSize
   let infoL        = view infoLine globalState
       globalState' = (over editor (\ed -> ed { viewHeight = y - 1 }))
-                       $ (over infoLine (\il -> setInfoLineContent il $ infoLineContentFor globalState)) globalState
+                       $ (over infoLine (\il -> setInfoLineContent il $ infoLineContentFor globalState) globalState)
   evt <- renderAndWaitEvent globalState'
-  nextGlobalState <- handleEvt globalState' evt
+  nextGlobalState <- handleEvt (set needsRepaint True globalState') evt
   if (view shouldQuit nextGlobalState)
     then return ()
     else mainLoop nextGlobalState

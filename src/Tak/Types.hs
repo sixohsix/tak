@@ -131,6 +131,7 @@ defaultInfoLineEditor = InfoLineEditor defaultBuffer
 
 data GlobalState = GlobalState {
   _shouldQuit :: Bool,
+  _needsRepaint :: Bool,
   _clipboard :: [Seq.Seq String],
   _editor :: SimpleEditor,
   _infoLine :: InfoLineEditor
@@ -139,5 +140,5 @@ data GlobalState = GlobalState {
 makeLenses ''GlobalState
 
 defaultGlobalState =
-  GlobalState False [] defaultSimpleEditor defaultInfoLineEditor
+  GlobalState False True [] defaultSimpleEditor defaultInfoLineEditor
 
