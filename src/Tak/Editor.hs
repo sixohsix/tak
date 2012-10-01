@@ -6,6 +6,7 @@ import Prelude as P
 import qualified Data.Text as DT
 import qualified Data.Text.IO as DTIO
 import System.Directory (doesFileExist)
+import System.IO
 import Control.Arrow ( (>>>) )
 import Control.Lens
 
@@ -77,7 +78,12 @@ simpleEditorFromFile :: String -> IO (SimpleEditor)
 simpleEditorFromFile filename = do
   fileExists <- doesFileExist filename
   s <- if fileExists
-       then DTIO.readFile filename
+       then do
+         h <- openFile filename ReadMode
+         hSetNewlineMode h universalNewlineMode
+         contents <- DTIO.hGetContents h
+         hClose h
+         return contents
        else return DT.empty
   let buf = strToBuffer (DT.unpack s)
   pos <- getInitialPosition filename

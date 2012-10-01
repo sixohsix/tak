@@ -50,12 +50,9 @@ infoLineContentFor globalState =
       fn      = fileName ed
       selSt   = selState ed
       firstR  = (ranges selSt) !! 0
-      selStr  = if not $ null (ranges selSt)
-                then "[" ++ (show $ fst firstR) ++ "," ++ (show $ snd firstR) ++ "]"
-                else ""
       Pos l r = insertPos ed
       posStr  = mconcat [(show (l + 1)), ":", (show r)]
-  in mconcat ["  ", modStr, "  ", fn, " ", posStr, " ", selStr]
+  in mconcat ["  ", modStr, "  ", fn, " ", posStr]
 
 
 renderAndRefresh :: GlobalState -> IO ()
