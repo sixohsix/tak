@@ -5,6 +5,7 @@ import qualified System.IO.Strict as Strict
 import qualified Text.JSON as JSON
 import Data.Foldable (toList)
 import Data.Sequence (fromList, Seq)
+import Control.Monad (guard)
 
 import Tak.Types
 import Tak.Config (getClipboardPath)
@@ -13,12 +14,11 @@ readClipboard :: IO [LineSeq]
 readClipboard = do
   path <- getClipboardPath
   exists <- doesFileExist path
-  if exists then do
-     contents <- Strict.readFile path
-     return $ case JSON.decode contents of
-                JSON.Ok clipboard -> clipboard
-                JSON.Error _ -> []
-  else return []
+  guard exists
+  contents <- Strict.readFile path
+  return $ case JSON.decode contents of
+             JSON.Ok clipboard -> clipboard
+             JSON.Error _      -> []
 
 
 writeClipboard :: [LineSeq] -> IO ()
