@@ -15,6 +15,7 @@ import Tak.Editor
 import Tak.Editor.Cursor (insertPos)
 import Tak.Buffer
 import Tak.Config (updateInitialPosition)
+import Tak.GlobalState.Clipboard (readClipboard, writeClipboard)
 
 import Debug.Trace (trace)
 
@@ -24,6 +25,7 @@ topEvtMap =
         (KeyEvent $ KeyCtrlChar 'Q', \st -> do
             let ed = view editor st
             updateInitialPosition (fileName ed) (cursorPos ed)
+            writeClipboard (view clipboard st)
             return $ set shouldQuit True st),
         (KeyEvent $ KeyCtrlChar 'S', \st -> do
             let ed = view editor st
@@ -86,6 +88,7 @@ startEditor args = do
   if null args
     then putStrLn usage
     else do ed <- simpleEditorFromFile (args !! 0)
-            withCurses $ mainLoop $ set editor ed defaultGlobalState
+            cb <- readClipboard
+            withCurses $ mainLoop $ set editor ed $ set clipboard cb $ defaultGlobalState
   return ()
 

@@ -1,4 +1,4 @@
-module Tak.Config (getInitialPosition, updateInitialPosition) where
+module Tak.Config (getInitialPosition, updateInitialPosition, getClipboardPath) where
 
 import System.Directory (canonicalizePath, createDirectoryIfMissing, getHomeDirectory, doesFileExist)
 import qualified System.IO.Strict as Strict
@@ -32,6 +32,19 @@ getTakConfigDir = do
   let configDir = home ++ "/.tak"
   mkdirp configDir
   return $ configDir
+
+getConfigFilePath :: FilePath -> IO FilePath
+getConfigFilePath fn = do
+  dir <- getTakConfigDir
+  return (dir ++ "/" ++ fn)
+
+
+getPosFilePath :: IO FilePath
+getPosFilePath = getConfigFilePath "cursor_positions"
+
+
+getClipboardPath :: IO FilePath
+getClipboardPath = getConfigFilePath "clipboard.json"
 
 
 loadCursorPositions = do
