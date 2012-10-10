@@ -18,6 +18,7 @@ import Tak.Buffer
 import Tak.Config (updateInitialPosition)
 import Tak.GlobalState
 import Tak.GlobalState.Clipboard (readClipboard, writeClipboard)
+import Tak.GotoLine (gotoLine)
 import Tak.RunLoop
 import Tak.ShowKeyEvents
 
@@ -50,6 +51,7 @@ topEvtMap =
             writeFile (fileName ed) (bufferToStr $ buffer ed)
             return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
         (KeyEvent $ KeyEscaped $ KeyChar 'P', showKeyEvents),
+        (KeyEvent $ KeyEscaped $ KeyChar 'G', gotoLine),
         (TimeoutEvent, return . preventRepaint)
         ]
   in DefaultMap m (lookupWithDefault editorEvtMap)
