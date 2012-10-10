@@ -85,7 +85,7 @@ simpleEditorFromFile filename = do
          hClose h
          return contents
        else return DT.empty
-  let buf = strToBuffer (DT.unpack s)
+  let buf = textToBuffer s
   pos <- getInitialPosition filename
   return $ fixScroll $ defaultSimpleEditor {
     buffer = buf,

@@ -33,7 +33,10 @@ lineSeqToStr :: LineSeq -> String
 lineSeqToStr seq = Text.unpack $ Text.unlines $ toList seq
 
 strToBuffer :: String -> Buffer
-strToBuffer s = handleEmptySeq $ Buffer (Seq.fromList (Text.lines $ Text.pack s))
+strToBuffer s = textToBuffer $ Text.pack s
+
+textToBuffer :: Line -> Buffer
+textToBuffer t = handleEmptySeq $ Buffer (Seq.fromList $ Text.lines t)
 
 bufferToStr :: Buffer -> String
 bufferToStr buf = Text.unpack $ Text.unlines $ bufferToLines buf
