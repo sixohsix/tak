@@ -22,7 +22,7 @@ renderAndWaitEvent gst = do
 updateRepaint :: GlobalState -> GlobalState
 updateRepaint = set needsRepaint True
 
-doMainLoop :: (Event -> GlobalState -> IO ()) -> GlobalState -> IO ()
+doMainLoop :: (Event -> GlobalState -> IO a) -> GlobalState -> IO a
 doMainLoop handle globalState = do
   evt <- renderAndWaitEvent globalState
   handle evt globalState

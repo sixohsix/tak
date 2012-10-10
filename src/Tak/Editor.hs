@@ -93,11 +93,3 @@ simpleEditorFromFile filename = do
     cursorPos = pos
     }
 
-instance Editor InfoLineEditor where
-  render editor height width = do
-    invertText
-    renderBuffer Crop (infoBuffer editor) Nothing height width
-
-setInfoLineContent infoLineEditor str =
-  infoLineEditor { infoBuffer = strToBuffer str }
-

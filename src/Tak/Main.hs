@@ -13,10 +13,14 @@ import Tak.Types
 import Tak.Display
 import Tak.Editor
 import Tak.Editor.Cursor (insertPos)
+import Tak.Editor.InfoLine
 import Tak.Buffer
 import Tak.Config (updateInitialPosition)
+import Tak.GlobalState
 import Tak.GlobalState.Clipboard (readClipboard, writeClipboard)
 import Tak.RunLoop
+import Tak.ShowKeyEvents
+
 
 topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 topEvtMap =
@@ -30,6 +34,7 @@ topEvtMap =
             let ed = view editor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
             return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
+        (KeyEvent $ KeyCtrlChar 'P', showKeyEvents),
         (TimeoutEvent, return . set needsRepaint False)
         ]
   in DefaultMap m (lookupWithDefault editorEvtMap)
@@ -56,20 +61,6 @@ infoLineContentFor globalState =
   in mconcat ["  ", modStr, "  ", fn, " ", posStr]
 
 
-mainLoop globalState = do
-  (y, x) <- getScreenSize
-  let infoL        = view infoLine globalState
-      globalState' = (over editor (\ed -> ed { viewHeight = y - 1 }))
-                       $ (over infoLine (\il -> setInfoLineContent il $ infoLineContentFor globalState) globalState)
-  evt <- renderAndWaitEvent globalState'
-  nextGlobalState <- handleEvt (set needsRepaint True globalState') evt
-  if (view shouldQuit nextGlobalState)
-    then return ()
-    else mainLoop nextGlobalState
-
-updateEditorHeight y = (over editor (\ed -> ed { viewHeight = y - 1 }))
-updateInfoLine str = over infoLine (\il -> setInfoLineContent il str)
-
 topLoop = doMainLoop handler where
   handler evt globalState = do
     nextState <- handleEvt  globalState evt
@@ -80,6 +71,7 @@ topLoop = doMainLoop handler where
     (y, x) <- getScreenSize
     return $ updateRepaint $ updateEditorHeight y $ updateInfoLine (infoLineContentFor st) st
 
+
 main = do
   args <- getArgs
   startEditor args
@@ -89,6 +81,6 @@ startEditor args = do
     then putStrLn usage
     else do ed <- simpleEditorFromFile (args !! 0)
             cb <- readClipboard
-            withCurses $ mainLoop $ set editor ed $ set clipboard cb $ defaultGlobalState
+            withCurses $ topLoop $ set editor ed $ set clipboard cb $ defaultGlobalState
   return ()
 
