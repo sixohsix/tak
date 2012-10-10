@@ -63,13 +63,13 @@ infoLineContentFor globalState =
 
 topLoop = doMainLoop handler where
   handler evt globalState = do
-    nextState <- handleEvt  globalState evt
+    nextState <- handleEvt (updateRepaint globalState) evt
     if (view shouldQuit nextState)
       then return ()
       else (updateState >=> topLoop) nextState
   updateState st = do
     (y, x) <- getScreenSize
-    return $ updateRepaint $ updateEditorHeight y $ updateInfoLine (infoLineContentFor st) st
+    return $ updateEditorHeight y $ updateInfoLine (infoLineContentFor st) st
 
 
 main = do
