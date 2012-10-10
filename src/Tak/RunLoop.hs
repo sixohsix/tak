@@ -32,6 +32,6 @@ confirm msg gst =
       confirmHandler evt gst = case evt of
         KeyEvent (KeyChar 'y') -> return True
         KeyEvent (KeyChar 'n') -> return False
-        otherwise              -> loopConfirm gst
+        otherwise              -> loopConfirm (preventRepaint gst)
   in loopConfirm gst'
 
