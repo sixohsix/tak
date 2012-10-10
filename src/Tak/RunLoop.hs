@@ -47,7 +47,7 @@ query msg =
       queryHandler s evt gst =
         case evt of
           KeyEvent (KeyChar c) -> loopQuery (mappend s [c]) gst
-          KeyEvent KeyDel      -> loopQuery (reverse $ take 1 $ reverse s) gst
+          KeyEvent KeyDel      -> loopQuery (reverse $ drop 1 $ reverse s) gst
           KeyEvent KeyEnter    -> return $ Just s
           KeyEvent (KeyCtrlChar 'G') -> return Nothing
           otherwise                  -> loopQuery s gst
