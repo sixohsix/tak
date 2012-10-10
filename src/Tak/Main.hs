@@ -34,7 +34,7 @@ topEvtMap =
             let ed = view editor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
             return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
-        (KeyEvent $ KeyCtrlChar 'P', showKeyEvents),
+        (KeyEvent $ KeyEscaped $ KeyChar 'P', showKeyEvents),
         (TimeoutEvent, return . set needsRepaint False)
         ]
   in DefaultMap m (lookupWithDefault editorEvtMap)
