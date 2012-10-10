@@ -16,3 +16,8 @@ updateEditorHeight y = (over editor (\ed -> ed { viewHeight = y - 1 }))
 
 updateInfoLine str = over infoLine (\il -> setInfoLineContent il str)
 
+updateRepaint :: GlobalState -> GlobalState
+updateRepaint = set needsRepaint True
+
+preventRepaint = set needsRepaint False
+

@@ -26,16 +26,16 @@ topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 topEvtMap =
   let m = Map.fromList [
         (KeyEvent $ KeyCtrlChar 'Q', \st -> do
-            let ed = view editor st
+            let ed = activeEditor st
             updateInitialPosition (fileName ed) (cursorPos ed)
             writeClipboard (view clipboard st)
             return $ set shouldQuit True st),
         (KeyEvent $ KeyCtrlChar 'S', \st -> do
-            let ed = view editor st
+            let ed = activeEditor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
             return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
         (KeyEvent $ KeyEscaped $ KeyChar 'P', showKeyEvents),
-        (TimeoutEvent, return . set needsRepaint False)
+        (TimeoutEvent, return . preventRepaint)
         ]
   in DefaultMap m (lookupWithDefault editorEvtMap)
 
@@ -67,9 +67,10 @@ topLoop = doMainLoop handler where
     if (view shouldQuit nextState)
       then return ()
       else (updateState >=> topLoop) nextState
-  updateState st = do
-    (y, x) <- getScreenSize
-    return $ updateEditorHeight y $ updateInfoLine (infoLineContentFor st) st
+  
+updateState gst = do
+  (y, x) <- getScreenSize
+  return $ updateEditorHeight y $ updateInfoLine (infoLineContentFor gst) gst
 
 
 main = do
@@ -81,6 +82,7 @@ startEditor args = do
     then putStrLn usage
     else do ed <- simpleEditorFromFile (args !! 0)
             cb <- readClipboard
-            withCurses $ topLoop $ set editor ed $ set clipboard cb $ defaultGlobalState
+            gst <- updateState $ set editor ed $ set clipboard cb $ defaultGlobalState
+            withCurses $ topLoop gst
   return ()
 

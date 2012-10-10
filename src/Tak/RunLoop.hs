@@ -19,9 +19,6 @@ renderAndWaitEvent gst = do
   when (view needsRepaint gst) (renderAndRefresh gst)
   waitEvent
 
-updateRepaint :: GlobalState -> GlobalState
-updateRepaint = set needsRepaint True
-
 doMainLoop :: (Event -> GlobalState -> IO a) -> GlobalState -> IO a
 doMainLoop handle globalState = do
   evt <- renderAndWaitEvent globalState
