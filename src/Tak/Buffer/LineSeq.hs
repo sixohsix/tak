@@ -39,3 +39,6 @@ idxFirstPos _ = Pos 0 0
 idxLastPos :: LineSeq -> Pos
 idxLastPos seq = Pos (lastLineIdx seq) (length $ lastLine seq)
 
+removeTrailingWhitespace :: LineSeq -> LineSeq
+removeTrailingWhitespace = fmap (reverse . dropWhile isSpace . reverse)
+

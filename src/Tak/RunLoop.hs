@@ -1,8 +1,9 @@
-module Tak.RunLoop where
+module Tak.RunLoop (doMainLoop, confirm) where
 
 import Tak.Types
 import Tak.Display
 import Tak.Editor
+import Tak.GlobalState
 import Control.Lens
 import Control.Monad (when, guard)
 
@@ -23,4 +24,14 @@ doMainLoop :: (Event -> GlobalState -> IO a) -> GlobalState -> IO a
 doMainLoop handle globalState = do
   evt <- renderAndWaitEvent globalState
   handle evt globalState
+
+confirm :: String -> GlobalState -> IO Bool
+confirm msg gst =
+  let gst' = updateInfoLine ("    " ++ msg ++ " [y/n] ") gst
+      loopConfirm = doMainLoop confirmHandler
+      confirmHandler evt gst = case evt of
+        KeyEvent (KeyChar 'y') -> return True
+        KeyEvent (KeyChar 'n') -> return False
+        otherwise              -> loopConfirm gst
+  in loopConfirm gst'
 

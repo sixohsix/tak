@@ -22,14 +22,29 @@ import Tak.RunLoop
 import Tak.ShowKeyEvents
 
 
+quit gst = do
+  let ed = activeEditor gst
+      unsavedChanges = (lastSavePtr ed) /= 0
+  shouldQuit <- if unsavedChanges
+                then confirm "There are unsaved changes. Are you sure you want to quit?" gst
+                else return True
+  nextState <- if shouldQuit
+               then quitRightAway gst
+               else return gst
+  return nextState
+
+
+quitRightAway gst = do
+  let ed = activeEditor gst
+  updateInitialPosition (fileName ed) (cursorPos ed)
+  writeClipboard (view clipboard gst)
+  return $ set shouldQuit True gst
+
+
 topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 topEvtMap =
   let m = Map.fromList [
-        (KeyEvent $ KeyCtrlChar 'Q', \st -> do
-            let ed = activeEditor st
-            updateInitialPosition (fileName ed) (cursorPos ed)
-            writeClipboard (view clipboard st)
-            return $ set shouldQuit True st),
+        (KeyEvent $ KeyCtrlChar 'Q', quit),
         (KeyEvent $ KeyCtrlChar 'S', \st -> do
             let ed = activeEditor st
             writeFile (fileName ed) (bufferToStr $ buffer ed)
