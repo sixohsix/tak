@@ -4,16 +4,17 @@ import Tak.Types
 import Tak.Util (comboBreakers)
 
 import qualified Data.Sequence as Seq
+import qualified Data.Text as Text
 import Data.Char (isSpace)
 import Data.Foldable (toList)
 
 strToLineSeq :: String -> LineSeq
-strToLineSeq s = Seq.fromList $ lines s
+strToLineSeq s = Seq.fromList $ map Text.pack $ lines s
 
-isBlank :: String -> Bool
-isBlank = all isSpace
+isBlank :: Line -> Bool
+isBlank = all isSpace . Text.unpack
 
-isNotBlank :: String -> Bool
+isNotBlank :: Line -> Bool
 isNotBlank = not . isBlank
 
 lastLineIdx :: LineSeq -> LineIdx
@@ -37,8 +38,8 @@ idxFirstPos :: LineSeq -> Pos
 idxFirstPos _ = Pos 0 0
 
 idxLastPos :: LineSeq -> Pos
-idxLastPos seq = Pos (lastLineIdx seq) (length $ lastLine seq)
+idxLastPos seq = Pos (lastLineIdx seq) (Text.length $ lastLine seq)
 
 removeTrailingWhitespace :: LineSeq -> LineSeq
-removeTrailingWhitespace = fmap (reverse . dropWhile isSpace . reverse)
+removeTrailingWhitespace = fmap (Text.reverse . Text.dropWhile isSpace . Text.reverse)
 

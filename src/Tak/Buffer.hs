@@ -5,6 +5,7 @@ module Tak.Buffer where
 import Prelude as P
 import Data.Sequence ((><), (|>), (<|))
 import qualified Data.Sequence as Seq
+import qualified Data.Text as Text
 import Data.Char (isSpace)
 import Data.Foldable (toList)
 import Data.Monoid (mconcat)
@@ -20,7 +21,7 @@ import Tak.Buffer.Line
 
 
 empty :: Buffer
-empty = Buffer (Seq.singleton "")
+empty = Buffer (Seq.singleton Text.empty)
 
 handleEmptySeq :: Buffer -> Buffer
 handleEmptySeq buf =
@@ -28,19 +29,19 @@ handleEmptySeq buf =
   then empty
   else buf
 
-lineSeqToStr :: Seq.Seq String -> String
-lineSeqToStr seq = unlines $ toList seq
+lineSeqToStr :: LineSeq -> String
+lineSeqToStr seq = Text.unpack $ Text.unlines $ toList seq
 
 strToBuffer :: String -> Buffer
-strToBuffer s = handleEmptySeq $ Buffer (Seq.fromList (lines s))
+strToBuffer s = handleEmptySeq $ Buffer (Seq.fromList (Text.lines $ Text.pack s))
 
 bufferToStr :: Buffer -> String
-bufferToStr buf = unlines $ bufferToLines buf
+bufferToStr buf = Text.unpack $ Text.unlines $ bufferToLines buf
 
 bufferToLines :: Buffer -> [Line]
 bufferToLines buf = toList (lineSeq buf)
 
-lineAt :: Int -> Buffer -> String
+lineAt :: Int -> Buffer -> Line
 lineAt x buf = Seq.index (lineSeq buf) x
 
 
@@ -55,7 +56,7 @@ bufferDropLines lines buffer =
 posWithinBuffer :: Buffer -> Pos -> Pos
 posWithinBuffer buf (Pos y x) =
   let l = clamp 0 (lastLineIdx buf) y
-      r = clamp 0 (length $ lineAt l buf) x
+      r = clamp 0 (Text.length $ lineAt l buf) x
   in Pos l r
 
 
@@ -84,19 +85,19 @@ insertCharIntoBuffer :: Buffer -> Pos -> Char -> Buffer
 insertCharIntoBuffer buf (Pos y x) char =
   let seq = lineSeq buf
       line = Seq.index seq y
-      (before, after) = P.splitAt x line
-  in buf { lineSeq = Seq.update y (before ++ [char] ++ after) seq }
+      (before, after) = Text.splitAt x line
+  in buf { lineSeq = Seq.update y (Text.concat [before, Text.singleton char, after]) seq }
 
 
 deleteCharFromBuffer :: Buffer -> Pos -> Buffer
 deleteCharFromBuffer buf (Pos y x) =
   let seq = lineSeq buf
       line = Seq.index seq y
-      (before, after) = P.splitAt x line
-      newBefore = if not $ P.null before
-                  then P.take (P.length before - 1) before
+      (before, after) = Text.splitAt x line
+      newBefore = if not $ Text.null before
+                  then Text.take (Text.length before - 1) before
                   else before
-  in buf { lineSeq = Seq.update y (newBefore ++ after) seq }
+  in buf { lineSeq = Seq.update y (Text.concat [newBefore, after]) seq }
 
 insertLinebreakIntoBuffer :: Buffer -> Pos -> Buffer
 insertLinebreakIntoBuffer buf (Pos y x) =
@@ -105,7 +106,7 @@ insertLinebreakIntoBuffer buf (Pos y x) =
       seqAfter = if Seq.null seqRest
                  then Seq.empty
                  else Seq.drop 1 seqRest
-      (before, after) = P.splitAt x (Seq.index seqRest 0)
+      (before, after) = Text.splitAt x (Seq.index seqRest 0)
       seqMiddle = Seq.fromList [before, after]
   in buf { lineSeq = (seqBefore >< seqMiddle >< seqAfter) }
 
@@ -125,7 +126,7 @@ concatLine :: Buffer -> Int -> Buffer
 concatLine buf idx =
   let seq = lineSeq buf
       (left, right) = Seq.splitAt (idx - 1) seq
-      concatted = (Seq.index right 0) ++ (Seq.index right 1)
+      concatted = Text.concat [(Seq.index right 0), (Seq.index right 1)]
   in if idx <= 0 || (Seq.length right) < 2
      then buf
      else buf { lineSeq = (left |> concatted) >< (Seq.drop 2 right) }
@@ -137,16 +138,16 @@ cutSelectionLS src ((Pos sl sr), (Pos el er)) =
       rl = (el - sl) - 1
       (before, rem0) = Seq.splitAt sl src
       (startLine, rem1) = splitOne rem0
-      (beforeLine, inLine) = P.splitAt sr startLine
+      (beforeLine, inLine) = Text.splitAt sr startLine
       (inLines, _) = Seq.splitAt rl rem1
       (_, rem2) = Seq.splitAt el src
       (lastLine, after) = splitOne rem2
-      (outLine, afterLine) = P.splitAt er lastLine
+      (outLine, afterLine) = Text.splitAt er lastLine
       si = Seq.singleton
   in (if sl == el
-         then si (P.take (er - sr) inLine)
+         then si (Text.take (er - sr) inLine)
          else mconcat [si inLine, inLines, si outLine],
-      mconcat [before, si (beforeLine ++ afterLine), after])
+      mconcat [before, si $ Text.concat [beforeLine, afterLine], after])
 
 cutSelection :: Buffer -> (Pos, Pos) -> (LineSeq, Buffer)
 cutSelection buf r =
@@ -166,21 +167,21 @@ insertLineSeqIntoBuffer buf pos inSeq =
       seqBefore = Seq.take l seq
       seqAfter  = Seq.drop (l + 1) seq
       line      = Seq.index seq l
-      lineBefore = P.take r line
-      lineAfter  = P.drop r line
+      lineBefore = Text.take r line
+      lineAfter  = Text.drop r line
   in case Seq.length inSeq of
      0 -> buf
      1 -> buf { lineSeq = mconcat [seqBefore,
-                                   Seq.singleton (lineBefore ++ (Seq.index inSeq 0) ++ lineAfter),
+                                   Seq.singleton (Text.concat [lineBefore, (Seq.index inSeq 0), lineAfter]),
                                    seqAfter] }
      otherwise ->
          let firstLine = Seq.index inSeq 0
              lastLine  = Seq.index inSeq ((Seq.length inSeq) - 1)
              midLines  = Seq.drop 1 $ Seq.take ((Seq.length inSeq) - 1) inSeq
          in buf { lineSeq = mconcat [seqBefore,
-                                     Seq.singleton (lineBefore ++ firstLine),
+                                     Seq.singleton (Text.concat [lineBefore, firstLine]),
                                      midLines,
-                                     Seq.singleton (lastLine ++ lineAfter),
+                                     Seq.singleton (Text.concat [lastLine, lineAfter]),
                                      seqAfter] }
 
 posNextPara :: Buffer -> Pos -> Pos
@@ -212,7 +213,7 @@ posPrevWord buf pos =
        otherwise -> if r > 0
                     then Pos l 0
                     else if l > 0
-                         then Pos (l - 1) ((P.length $ lineAt (l - 1) buf) - 1)
+                         then Pos (l - 1) ((Text.length $ lineAt (l - 1) buf) - 1)
                          else pos
 
 posFirstPos :: Buffer -> Pos -> Pos

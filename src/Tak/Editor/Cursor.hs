@@ -1,5 +1,7 @@
 module Tak.Editor.Cursor where
 
+import qualified Tak.Buffer.Line as L
+
 import Tak.Util
 import Tak.Types
 import Tak.Buffer
@@ -42,7 +44,7 @@ cursorLeft ed =
   let cp = insertPos ed
       l = line cp
       r = row cp
-      lenOfLineBefore = length $ lineAt (l - 1) $ buffer ed
+      lenOfLineBefore = L.length $ lineAt (l - 1) $ buffer ed
   in if r > 0
      then ed { cursorPos = cp { row = r - 1 }}
      else if l > 0
@@ -53,7 +55,7 @@ cursorRight ed =
   let cp = insertPos ed
       l = line cp
       r = row cp
-      lenCurLine = length $ lineAt l $ buffer ed
+      lenCurLine = L.length $ lineAt l $ buffer ed
   in if r < lenCurLine
      then ed { cursorPos = cp { row = r + 1 } }
      else if l < (lastLineIdx $ buffer ed)
@@ -62,7 +64,7 @@ cursorRight ed =
 
 cursorEndOfLine ed =
   let cp = cursorPos ed
-      nextRowPos = (length $ lineAt (line cp) (buffer ed))
+      nextRowPos = (L.length $ lineAt (line cp) (buffer ed))
   in ed { cursorPos = cp { row = nextRowPos }}
 
 cursorBeginningOfLine ed = ed { cursorPos = (cursorPos ed) { row = 0 } }

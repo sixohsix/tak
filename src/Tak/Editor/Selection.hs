@@ -3,6 +3,7 @@ module Tak.Editor.Selection where
 import Tak.Types
 import Tak.GlobalState
 import Tak.Buffer
+import qualified Tak.Buffer.Line as L
 import Tak.Range
 import Tak.Editor.Cursor
 import Tak.Editor.Undo (pushUndo)
@@ -65,7 +66,7 @@ pasteAtInsertPos gst
           Just pasteSeq = pasteable gst
           lPasteSeq = Seq.length pasteSeq
           isOneLinePaste = lPasteSeq == 1
-          lastLineLen = length $ Seq.index pasteSeq (lPasteSeq - 1)
+          lastLineLen = L.length $ Seq.index pasteSeq (lPasteSeq - 1)
       in (set editor $ (pushUndo ed) { buffer = insertLineSeqIntoBuffer buf iPos pasteSeq,
                                        cursorPos = Pos (l + (Seq.length pasteSeq) - 1)
                                                        (if isOneLinePaste then (r + lastLineLen) else lastLineLen) }) gst

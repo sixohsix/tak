@@ -5,9 +5,10 @@ module Tak.Types where
 import qualified Data.Map as Map
 import qualified Data.Sequence as Seq
 import qualified Control.Monad.State as St
+import qualified Data.Text as Text
 import Control.Lens (makeLenses)
 
-type Line = String
+type Line = Text.Text
 
 type LineIdx = Int
 
@@ -16,7 +17,7 @@ type LineSeq = Seq.Seq Line
 data Buffer = Buffer {
   lineSeq :: LineSeq
   } deriving (Show)
-defaultBuffer = Buffer $ Seq.fromList [""]
+defaultBuffer = Buffer $ Seq.fromList [Text.empty]
 
 data Box = Box {
   top :: Int,
@@ -132,7 +133,7 @@ defaultInfoLineEditor = InfoLineEditor defaultBuffer
 data GlobalState = GlobalState {
   _shouldQuit :: Bool,
   _needsRepaint :: Bool,
-  _clipboard :: [Seq.Seq String],
+  _clipboard :: [LineSeq],
   _editor :: SimpleEditor,
   _infoLine :: InfoLineEditor
   }
