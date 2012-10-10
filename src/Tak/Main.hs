@@ -6,7 +6,7 @@ import qualified Control.Monad.State as S
 import qualified Data.Map as Map
 import System.Environment (getArgs)
 import Data.Monoid (mconcat)
-import Control.Monad (when)
+import Control.Monad (when, (>=>) )
 import Control.Lens
 
 import Tak.Types
@@ -16,8 +16,7 @@ import Tak.Editor.Cursor (insertPos)
 import Tak.Buffer
 import Tak.Config (updateInitialPosition)
 import Tak.GlobalState.Clipboard (readClipboard, writeClipboard)
-
-import Debug.Trace (trace)
+import Tak.RunLoop
 
 topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
 topEvtMap =
@@ -57,18 +56,6 @@ infoLineContentFor globalState =
   in mconcat ["  ", modStr, "  ", fn, " ", posStr]
 
 
-renderAndRefresh :: GlobalState -> IO ()
-renderAndRefresh gst = do
-  (y, x) <- getScreenSize
-  renderEditor (Box (y - 1) 0       1 x) (view infoLine gst)
-  renderEditor (Box 0       0 (y - 1) x) (view editor gst)
-  refresh
-
-renderAndWaitEvent :: GlobalState -> IO Event
-renderAndWaitEvent gst = do
-  when (view needsRepaint gst) (renderAndRefresh gst)
-  waitEvent
-
 mainLoop globalState = do
   (y, x) <- getScreenSize
   let infoL        = view infoLine globalState
@@ -79,6 +66,19 @@ mainLoop globalState = do
   if (view shouldQuit nextGlobalState)
     then return ()
     else mainLoop nextGlobalState
+
+updateEditorHeight y = (over editor (\ed -> ed { viewHeight = y - 1 }))
+updateInfoLine str = over infoLine (\il -> setInfoLineContent il str)
+
+topLoop = doMainLoop handler where
+  handler evt globalState = do
+    nextState <- handleEvt  globalState evt
+    if (view shouldQuit nextState)
+      then return ()
+      else (updateState >=> topLoop) nextState
+  updateState st = do
+    (y, x) <- getScreenSize
+    return $ updateRepaint $ updateEditorHeight y $ updateInfoLine (infoLineContentFor st) st
 
 main = do
   args <- getArgs
