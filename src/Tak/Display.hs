@@ -44,12 +44,14 @@ getScreenSize = C.scrSize
 
 refresh = C.refresh
 
+keyCharEvt c
+  | (ord c) >= 32 = KeyChar c
+  | otherwise     = KeyCtrlChar (chr ((ord c) .|. (2 ^ 6)))
+
 cursesKeyToEvt :: C.Key -> Event
 cursesKeyToEvt (C.KeyChar '\n')   = KeyEvent KeyEnter
 cursesKeyToEvt (C.KeyChar '\DEL') = KeyEvent KeyDel
-cursesKeyToEvt (C.KeyChar c)
-  | (ord c) >= 32 = KeyEvent $ KeyChar c
-  | otherwise     = KeyEvent $ KeyCtrlChar (chr ((ord c) .|. (2 ^ 6)))
+cursesKeyToEvt (C.KeyChar c)      = KeyEvent $ keyCharEvt c
 cursesKeyToEvt C.KeyUp            = KeyEvent KeyUp
 cursesKeyToEvt C.KeyDown          = KeyEvent KeyDown
 cursesKeyToEvt C.KeyLeft          = KeyEvent KeyLeft
@@ -78,7 +80,7 @@ decodeEscSeq :: IO Event
 decodeEscSeq = do
   key1 <- getNextKey
   case C.decodeKey key1 of
-    C.KeyChar c -> return $ KeyEvent $ KeyEscapedChar c
+    C.KeyChar c -> return $ KeyEvent $ KeyEscaped $ keyCharEvt c
     otherwise   -> do ungetKey key1
                       return $ KeyEvent $ KeyEscape
 

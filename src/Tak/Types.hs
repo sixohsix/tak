@@ -64,7 +64,7 @@ instance Monad RenderW where
 
 data Key = KeyChar Char
          | KeyCtrlChar Char
-         | KeyEscapedChar Char
+         | KeyEscaped Key
          | KeyUp
          | KeyDown
          | KeyLeft
