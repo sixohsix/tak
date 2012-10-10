@@ -1,11 +1,11 @@
-This is a text editor.
-----------------------
+Tak is a text editor
+--------------------
 
 
 USAGE
 =====
 
-    tes <file>
+    tak <file>
 
 
 KEYBOARD SHORTCUTS
@@ -20,12 +20,25 @@ KEYBOARD SHORTCUTS
   movement:
 
   arrows              move around lines and rows
+  PgUp/PgDn           move up/down by a screen
+  Home                beginning of line
+  End                 end of line
   C-arrow-l/r         move back or forwards by word
   C-arrow-u/d         move up or down one paragraph (separated by blank lines) 
+  M-S-g               goto line
 
 
   copy/paste:
 
+  C-space    Begin selecting
+  C-g        Cancel selecting
+  C-x        Cut
+  C-c        Copy
+  C-v        Paste
+
   Use C-space to begin a "region". Then use C-c to cut that region or C-c to copy 
   it. Use C-v to paste at current insertion point.
+
+  The clipboard is saved to disk on quit, so when you reopen tak, the last copied
+  text will be available to paste.
 
