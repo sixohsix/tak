@@ -8,6 +8,7 @@ import qualified Data.Text.IO as DTIO
 import System.Directory (doesFileExist)
 import System.IO
 import Control.Arrow ( (>>>) )
+import Control.Monad ( (>=>) )
 import Control.Lens
 
 import Tak.Types as TT
@@ -61,7 +62,7 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent $ KeyCtrlChar 'K', ie killLine),
   (KeyEvent $ KeyCtrlChar '@', ie startSelecting),
   (KeyEvent $ KeyCtrlChar 'X', \gst -> ((copySelection >>> (ie deleteSelection)) gst)),
-  (KeyEvent $ KeyCtrlChar 'C', return . copySelection),
+  (KeyEvent $ KeyCtrlChar 'C', (return . copySelection) >=> (ie cancelSelecting)),
   (KeyEvent $ KeyCtrlChar 'G', ie cancelSelecting),
   (KeyEvent $ KeyCtrlChar 'V', return . pasteAtInsertPos),
   (KeyEvent KeyCtrlUp,         ie cursorPrevPara),

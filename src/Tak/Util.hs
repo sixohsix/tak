@@ -21,7 +21,7 @@ comboBreakers fs lSeq =
 
 moveRelative :: Pos -> Pos -> Pos
 moveRelative (Pos ol or) (Pos dl dr) =
-  if dl == 1
+  if dl <= 0
      then Pos ol (or + dr)
      else Pos (ol + dl) dr
 

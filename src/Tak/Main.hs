@@ -13,6 +13,7 @@ import Tak.Types
 import Tak.Display
 import Tak.Editor
 import Tak.Editor.Cursor (insertPos)
+import Tak.Editor.Search
 import Tak.Editor.InfoLine
 import Tak.Buffer
 import Tak.Config (updateInitialPosition)
@@ -52,6 +53,7 @@ topEvtMap =
             return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
         (KeyEvent $ KeyEscaped $ KeyChar 'P', showKeyEvents),
         (KeyEvent $ KeyEscaped $ KeyChar 'G', gotoLine),
+        (KeyEvent $ KeyEscaped $ KeyChar 's', search),
         (TimeoutEvent, return . preventRepaint)
         ]
   in DefaultMap m (lookupWithDefault editorEvtMap)
