@@ -17,13 +17,11 @@ import Tak.Text
 import Tak.Buffer
 import Tak.Display
 import Tak.Editor.Cursor
-import Tak.Editor.Undo as Undo
+import Tak.Editor.Undo
 import Tak.Editor.Edit
 import Tak.Editor.Selection
 import Tak.Editor.Replace
 import Tak.Config
-
-isModified = Undo.isModified
 
 instance Editor SimpleEditor where
   render editor height width = do

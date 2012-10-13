@@ -7,6 +7,7 @@ import Tak.Buffer (cutSelectionLS)
 import Tak.GlobalState
 import Tak.Editor.Cursor (fixScroll)
 import Tak.Editor.Selection (startSelecting)
+import Tak.Editor.InfoLine (infoLineContent)
 
 import Control.Lens (set, over, view)
 import Data.Maybe (fromMaybe)
@@ -16,10 +17,11 @@ import Data.Foldable (toList)
 import qualified Data.Text as T
 import qualified Data.Sequence as S
 
-search :: GlobalState -> IO GlobalState
-search = searchLoop "" . (over editor startSelecting)
 
-searchLoop sstr = doMainLoop (handler sstr) . updateRepaint
+search :: GlobalState -> IO GlobalState
+search = searchLoop ""
+
+searchLoop sstr = doMainLoop (handler sstr)
 
 lsAfter pos ls = snd $ cutSelectionLS ls (Pos 0 0, pos)
 
@@ -30,6 +32,11 @@ findStringsAfter sstr pos ls =
     f line idx = fmap (g idx) $ T.breakOnAll (T.pack sstr) line
     g idx (before, _) = Pos idx (T.length before)
 
+updateInfoLineSearching sstr wasFound gst =
+  let searching   = ["Searching for: '", sstr, "'", wasFoundStr]
+      wasFoundStr = if wasFound then "" else " NOT FOUND"
+  in updateInfoLine (infoLineContent gst $ Just $ mconcat searching) gst
+
 updateSelectionWithNextFind :: String -> Pos -> GlobalState -> GlobalState
 updateSelectionWithNextFind sstr pos gst =
   let ed = view editor gst
@@ -38,7 +45,9 @@ updateSelectionWithNextFind sstr pos gst =
       stringsAfter = findStringsAfter sstr pos ls
       startPos:_ = stringsAfter
       endPos = shift startPos (Pos 0 slen)
-  in case stringsAfter of
+      wasFound = stringsAfter /= []
+      updateIL = updateInfoLineSearching sstr wasFound
+  in updateIL $ case stringsAfter of
        []      -> gst
        (p:_)   -> over editor (\ed -> fixScroll $ ed { cursorPos = endPos, selState = (selState ed) { openRange = Just startPos } }) gst
 
@@ -49,8 +58,7 @@ handler sstr evt gst =
   in case evt of
        KeyEvent (KeyChar c) -> loopNextSstr (sstr ++ [c]) pos gst
        KeyEvent KeyDel      -> loopNextSstr (reverse $ drop 1 $ reverse sstr) pos gst
-       KeyEvent (KeyCtrlChar 'G') -> return gst
-       KeyEvent KeyEnter          -> return gst
-       KeyEvent (KeyCtrlChar 'N') -> loopNextSstr sstr curPos gst
-       otherwise -> searchLoop sstr $ preventRepaint gst
+       KeyEvent (KeyEscaped (KeyChar 's')) -> loopNextSstr sstr curPos gst
+       KeyEvent _           -> return gst
+       otherwise            -> searchLoop sstr $ preventRepaint gst
 

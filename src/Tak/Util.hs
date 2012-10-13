@@ -29,3 +29,6 @@ moveRelative (Pos ol or) (Pos dl dr) =
 shift :: Pos -> Pos -> Pos
 shift (Pos l0 r0) (Pos l1 r1) = Pos (max 0 (l0 + l1)) (max 0 (r0 + r1))
 
+isModified :: SimpleEditor -> Bool
+isModified ed = (lastSavePtr ed) /= 0
+

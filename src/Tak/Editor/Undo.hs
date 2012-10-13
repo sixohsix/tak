@@ -2,6 +2,7 @@ module Tak.Editor.Undo where
 
 import Tak.Types
 import Tak.Editor.Cursor
+import Tak.Util
 
 
 pushUndo :: SimpleEditor -> SimpleEditor
@@ -18,9 +19,6 @@ popUndo st =
                undoBuffers = drop 1 (undoBuffers st),
                lastSavePtr = (lastSavePtr st) - 1 }
      else st
-
-isModified :: SimpleEditor -> Bool
-isModified ed = (lastSavePtr ed) /= 0
 
 undo :: SimpleEditor -> SimpleEditor
 undo = fixScroll . popUndo

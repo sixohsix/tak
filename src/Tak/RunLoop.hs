@@ -26,7 +26,7 @@ renderAndWaitEvent gst = do
 doMainLoop :: (Event -> GlobalState -> IO a) -> GlobalState -> IO a
 doMainLoop handle globalState = do
   evt <- renderAndWaitEvent globalState
-  handle evt globalState
+  handle evt (updateRepaint globalState)
 
 
 confirm :: String -> GlobalState -> IO Bool

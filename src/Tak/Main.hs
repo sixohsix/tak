@@ -67,19 +67,6 @@ usage = unlines [
   "  tak <file>"
   ]
 
-infoLineContentFor globalState =
-  let ed = view editor globalState
-      modStr  = if isModified ed
-                then "*"
-                else " "
-      fn      = fileName ed
-      selSt   = selState ed
-      firstR  = (ranges selSt) !! 0
-      Pos l r = insertPos ed
-      posStr  = mconcat [(show (l + 1)), ":", (show r)]
-  in mconcat ["  ", modStr, "  ", fn, " ", posStr]
-
-
 topLoop = doMainLoop handler where
   handler evt globalState = do
     nextState <- handleEvt (updateRepaint globalState) evt
@@ -89,7 +76,7 @@ topLoop = doMainLoop handler where
   
 updateState gst = do
   (y, x) <- getScreenSize
-  return $ updateEditorHeight y $ updateInfoLine (infoLineContentFor gst) gst
+  return $ updateEditorHeight y $ updateInfoLine (infoLineContent gst Nothing) gst
 
 
 main = do
