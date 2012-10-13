@@ -19,7 +19,8 @@ import qualified Data.Sequence as S
 
 
 search :: GlobalState -> IO GlobalState
-search = searchLoop ""
+search gst = searchLoop "" $ (updateInfoLine $ infoLineContent gst $ Just "Start typing to search") gst
+
 
 searchLoop sstr = doMainLoop (handler sstr)
 
