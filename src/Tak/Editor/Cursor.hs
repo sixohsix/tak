@@ -17,7 +17,11 @@ screenPos se = let iPos = insertPos se
                   then iPos { line = screenLine }
                   else Pos 0 0
 
-fixScroll ed =
+
+fixScroll = fixScrollN 0
+fixScrollCentered ed = fixScrollN (viewHeight ed `div` 2) ed
+
+fixScrollN offset ed =
   let cp = cursorPos ed
       l  = line cp
       ls = lineScroll ed
@@ -26,7 +30,7 @@ fixScroll ed =
       isAfter  = l >= ls + h
       newLineScroll
         | isBefore  = l
-        | isAfter   = l - h + 1
+        | isAfter   = l - h + 1 + offset
         | otherwise = ls
   in ed { lineScroll = newLineScroll }
 

@@ -42,3 +42,11 @@ KEYBOARD SHORTCUTS
   The clipboard is saved to disk on quit, so when you reopen tak, the last copied
   text will be available to paste.
 
+
+  searching:
+
+  M-s        Start searching
+
+  When searching, type a string to search for it in the file. Use M-s again to
+  search for the next occurence. Any non-character key will quit searching.
+

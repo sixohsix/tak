@@ -5,7 +5,7 @@ import Tak.RunLoop
 import Tak.Util
 import Tak.Buffer (cutSelectionLS)
 import Tak.GlobalState
-import Tak.Editor.Cursor (fixScroll)
+import Tak.Editor.Cursor (fixScrollCentered)
 import Tak.Editor.Selection (startSelecting)
 import Tak.Editor.InfoLine (infoLineContent)
 
@@ -50,7 +50,7 @@ updateSelectionWithNextFind sstr pos gst =
       updateIL = updateInfoLineSearching sstr wasFound
   in updateIL $ case stringsAfter of
        []      -> gst
-       (p:_)   -> over editor (\ed -> fixScroll $ ed { cursorPos = endPos, selState = (selState ed) { openRange = Just startPos } }) gst
+       (p:_)   -> over editor (\ed -> fixScrollCentered $ ed { cursorPos = endPos, selState = (selState ed) { openRange = Just startPos } }) gst
 
 handler sstr evt gst = 
   let loopNextSstr s p = searchLoop s . updateSelectionWithNextFind s p
