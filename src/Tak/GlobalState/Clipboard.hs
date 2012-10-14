@@ -10,11 +10,18 @@ import Control.Monad (guard)
 import Tak.Types
 import Tak.Config (getClipboardPath)
 
+
 readClipboard :: IO [LineSeq]
 readClipboard = do
   path <- getClipboardPath
   exists <- doesFileExist path
-  guard exists
+  clipboard <- if exists
+               then readClipboardFile path
+               else return []
+  return clipboard
+
+
+readClipboardFile path = do
   contents <- Strict.readFile path
   return $ case JSON.decode contents of
              JSON.Ok clipboard -> clipboard
