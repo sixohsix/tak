@@ -1,6 +1,7 @@
 module Tak.Buffer.Line where
 
 import Data.Char (isSpace, ord)
+import Data.Char.WCWidth (wcwidth)
 import qualified Data.Text as Text
 
 import Tak.Types
@@ -32,11 +33,18 @@ unweird '\t' = "        "
 unweird a = [a]
 
 
+wcwidthSafe c =
+  let w = wcwidth c
+  in if w /= -1
+     then w
+     else 1
+
+
 charWidth :: Char -> Int
 charWidth c
   | c == '\t'   = 8
   | ord c < 255 = 1
-  | otherwise   = 2
+  | otherwise   = wcwidthSafe c
 
 
 lineWidth :: Line -> Int
