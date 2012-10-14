@@ -22,7 +22,7 @@ search :: GlobalState -> IO GlobalState
 search gst = searchLoop "" $ (updateInfoLine $ infoLineContent gst $ Just "Start typing to search") gst
 
 
-searchLoop sstr = doMainLoop (handler sstr)
+searchLoop sstr = doMainLoop (searchHandler sstr)
 
 lsAfter pos ls = snd $ cutSelectionLS ls (Pos 0 0, pos)
 
@@ -52,7 +52,7 @@ updateSelectionWithNextFind sstr pos gst =
        []      -> gst
        (p:_)   -> over editor (\ed -> fixScrollCentered $ ed { cursorPos = endPos, selState = (selState ed) { openRange = Just startPos } }) gst
 
-handler sstr evt gst = 
+searchHandler sstr evt gst = 
   let loopNextSstr s p = searchLoop s . updateSelectionWithNextFind s p
       curPos = cursorPos (view editor gst)
       pos = fromMaybe curPos (openRange $ selState (view editor gst))

@@ -130,16 +130,23 @@ data InfoLineEditor = InfoLineEditor {
   }
 defaultInfoLineEditor = InfoLineEditor defaultBuffer
 
+data Mode = Mode {
+  handler :: Event -> GlobalState -> IO GlobalState
+}
+
+defaultMode = Mode (\e g -> return g)
+
 data GlobalState = GlobalState {
   _shouldQuit :: Bool,
   _needsRepaint :: Bool,
   _clipboard :: [LineSeq],
   _editor :: SimpleEditor,
-  _infoLine :: InfoLineEditor
+  _infoLine :: InfoLineEditor,
+  _mode :: Mode
   }
 
 makeLenses ''GlobalState
 
 defaultGlobalState =
-  GlobalState False True [] defaultSimpleEditor defaultInfoLineEditor
+  GlobalState False True [] defaultSimpleEditor defaultInfoLineEditor defaultMode
 

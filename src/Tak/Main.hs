@@ -43,23 +43,25 @@ quitRightAway gst = do
   return $ set shouldQuit True gst
 
 
-topEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
-topEvtMap =
-  let m = Map.fromList [
-        (KeyEvent $ KeyCtrlChar 'Q', quit),
-        (KeyEvent $ KeyCtrlChar 'S', \st -> do
-            let ed = activeEditor st
-            writeFile (fileName ed) (bufferToStr $ buffer ed)
-            return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
-        (KeyEvent $ KeyEscaped $ KeyChar 'P', showKeyEvents),
-        (KeyEvent $ KeyEscaped $ KeyChar 'G', gotoLine),
-        (KeyEvent $ KeyEscaped $ KeyChar 's', search),
-        (TimeoutEvent, return . preventRepaint)
-        ]
-  in DefaultMap m (lookupWithDefault editorEvtMap)
+topEvtMap :: Map.Map Event (GlobalState -> IO GlobalState)
+topEvtMap = Map.fromList [
+  (KeyEvent $ KeyCtrlChar 'Q', quit),
+  (KeyEvent $ KeyCtrlChar 'S', \st -> do
+     let ed = activeEditor st
+     writeFile (fileName ed) (bufferToStr $ buffer ed)
+     return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
+  (KeyEvent $ KeyEscaped $ KeyChar 'P', showKeyEvents),
+  (KeyEvent $ KeyEscaped $ KeyChar 'G', gotoLine),
+  (KeyEvent $ KeyEscaped $ KeyChar 's', search),
+  (TimeoutEvent, return . preventRepaint)
+  ]
 
-handleEvt :: GlobalState -> Event -> IO GlobalState
-handleEvt globalState evt = (lookupWithDefault topEvtMap evt) globalState
+
+handleEvt :: Event -> GlobalState -> IO GlobalState
+handleEvt evt gst = 
+  let modeHandler = (handler $ view mode gst) evt
+  in (Map.findWithDefault modeHandler evt topEvtMap) gst
+
 
 usage :: String
 usage = unlines [
@@ -69,7 +71,7 @@ usage = unlines [
 
 topLoop = doMainLoop handler where
   handler evt globalState = do
-    nextState <- handleEvt (updateRepaint globalState) evt
+    nextState <- handleEvt evt globalState
     if (view shouldQuit nextState)
       then return ()
       else (updateState >=> topLoop) nextState
@@ -78,6 +80,7 @@ updateState gst = do
   (y, x) <- getScreenSize
   return $ updateEditorHeight y $ updateInfoLine (infoLineContent gst Nothing) gst
 
+updateInfoLineInitMsg = updateInfoLineDefaultMsg "Welcome to Tak. Type C-q to quit"
 
 main = do
   args <- getArgs
@@ -88,7 +91,7 @@ startEditor args = do
     then putStrLn usage
     else do ed <- simpleEditorFromFile (args !! 0)
             cb <- readClipboard
-            gst <- updateState $ set editor ed $ set clipboard cb $ defaultGlobalState
-            withCurses $ topLoop gst
+            gst <- updateState $ set editor ed $ set clipboard cb $ set mode defaultEditorMode $ defaultGlobalState
+            withCurses $ topLoop (updateInfoLineInitMsg gst)
   return ()
 
