@@ -18,6 +18,7 @@ import Tak.Util (clamp)
 
 import Debug.Trace (trace)
 
+invertPair = 1
 
 withCurses :: IO () -> IO ()
 withCurses f = do
@@ -27,7 +28,7 @@ withCurses f = do
   C.keypad C.stdScr True
   C.nl True
   C.timeout 200
-  C.initPair (C.Pair 1024) CH.black CH.white
+  C.initPair (C.Pair invertPair) CH.black CH.white
   (y, x) <- getScreenSize
   C.move (y-1) (x-1)
   C.move 0 0
@@ -142,7 +143,7 @@ setCursor p = RenderW ((), [SetCursor p])
 regularText :: RenderW ()
 regularText = RenderW ((), [SetColorPair 0])
 invertText :: RenderW ()
-invertText = RenderW ((), [SetColorPair 1024])
+invertText = RenderW ((), [SetColorPair invertPair])
 
 drawToScreen :: Box -> RenderAction -> IO ()
 drawToScreen (Box top left height width) command =

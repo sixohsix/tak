@@ -79,6 +79,7 @@ simpleEditorFromFile filename = do
   s <- if fileExists
        then do
          h <- openFile filename ReadMode
+         hSetEncoding h utf8_bom
          hSetNewlineMode h universalNewlineMode
          contents <- DTIO.hGetContents h
          hClose h

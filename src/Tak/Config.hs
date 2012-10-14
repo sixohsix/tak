@@ -5,7 +5,7 @@ import qualified System.IO.Strict as Strict
 import Data.List (foldl')
 import Data.Maybe (fromJust)
 import Data.Monoid (mconcat)
-import Control.Monad (guard)
+import Control.Monad (guard, when)
 
 import Tak.Types
 
@@ -88,16 +88,24 @@ writeCursorPositions posList = do
 
 updateInitialPosition :: FilePath -> Pos -> IO ()
 updateInitialPosition fp pos = do
-  absFp <- canonicalizePath fp
-  posList <- loadCursorPositions
-  let newPosList = (absFp, pos):(filter (\(fp', _) -> fp' /= absFp) posList)
-  writeCursorPositions newPosList
+  exists <- doesFileExist fp
+  when exists $ do
+    absFp <- canonicalizePath fp
+    posList <- loadCursorPositions
+    let newPosList = (absFp, pos):(filter (\(fp', _) -> fp' /= absFp) posList)
+    writeCursorPositions newPosList
 
-getInitialPosition :: FilePath -> IO Pos
-getInitialPosition fp = do
+getInitialPositionOfRealFile fp = do
   absFp <- canonicalizePath fp
   posns <- loadCursorPositions
   return $ case filter (\(fp, _) -> fp == absFp) posns of
              ((_, pos):_) -> pos
              otherwise    -> Pos 0 0
 
+getInitialPosition :: FilePath -> IO Pos
+getInitialPosition fp = do
+  exists <- doesFileExist fp
+  pos <- if exists
+         then getInitialPositionOfRealFile fp
+         else return $ Pos 0 0
+  return pos
