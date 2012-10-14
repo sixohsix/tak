@@ -11,10 +11,12 @@ insertPos ed = posWithinBuffer (buffer ed) (cursorPos ed)
 
 screenPos :: SimpleEditor -> Pos
 screenPos se = let iPos = insertPos se
+                   Pos y x = iPos
                    screenLine = (line iPos) - (lineScroll se)
                    isOnScreen = screenLine >= 0
+                   width = L.lineWidth (L.take x (lineAt y $ buffer se))
                in if isOnScreen
-                  then iPos { line = screenLine }
+                  then iPos { line = screenLine, row = width }
                   else Pos 0 0
 
 

@@ -1,6 +1,6 @@
 module Tak.Buffer.Line where
 
-import Data.Char (isSpace)
+import Data.Char (isSpace, ord)
 import qualified Data.Text as Text
 
 import Tak.Types
@@ -21,5 +21,24 @@ idxWordsBefore l idx =
       idxs = comboBreakers [isSpace, isNotSpace] (Text.unpack $ Text.drop invIdx $ Text.reverse l)
   in map (\i -> len - (invIdx + i)) idxs
 
+
 length = Text.length
+take = Text.take
+drop = Text.drop
+
+
+unweird :: Char -> String
+unweird '\t' = "        "
+unweird a = [a]
+
+
+charWidth :: Char -> Int
+charWidth c
+  | c == '\t'   = 8
+  | ord c < 255 = 1
+  | otherwise   = 2
+
+
+lineWidth :: Line -> Int
+lineWidth line = sum $ map charWidth $ Text.unpack line
 

@@ -3,6 +3,8 @@ module Tak.Text where
 import Prelude
 import qualified Data.Text as Text
 import Tak.Types
+import Tak.Buffer.Line (unweird)
+
 
 wrapLine :: Int -> Line -> [Line]
 wrapLine width str
@@ -20,5 +22,5 @@ linesToFixedLengthStrs wrapMode width lines =
   let lineToStrs line = case wrapMode of
         Crop      -> [Text.take width line]
         otherwise -> wrapLine width line
-  in map Text.unpack $ concat $ map lineToStrs lines
+  in map ((concatMap unweird) . Text.unpack) $ concatMap lineToStrs lines
 
