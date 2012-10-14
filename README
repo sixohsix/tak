@@ -23,8 +23,9 @@ KEYBOARD SHORTCUTS
   PgUp/PgDn           move up/down by a screen
   Home                beginning of line
   End                 end of line
-  C-arrow-l/r         move back or forwards by word
-  C-arrow-u/d         move up or down one paragraph (separated by blank lines) 
+  C-arrow-l/r         move back or forwards by word (M-arrow-l/r also work)
+  C-arrow-u/d         move up or down one paragraph (separated by blank lines)
+                          (M-arrow-u/d also work)
   M-S-g               goto line
 
 
@@ -49,4 +50,15 @@ KEYBOARD SHORTCUTS
 
   When searching, type a string to search for it in the file. Use M-s again to
   search for the next occurence. Any non-character key will quit searching.
+
+
+  other:
+
+  Tak uses utf-8 terminal routines. If your terminal is not utf-8 (unicode) aware,
+  strange things might happen.
+
+  If this appears to be a marshmallow flipping a table over, your terminal should 
+  be fine:
+
+      (╯°□°）╯︵ ┻━┻
 
