@@ -79,10 +79,6 @@ editCommands = Map.fromList [
   (KeyEvent $ KeyCtrlChar 'P', replaceRegionWithShellCmd "echo hello")
   ]  
 
-editorEvtMap :: DefaultMap Event (GlobalState -> IO GlobalState)
-editorEvtMap = DefaultMap (readOnlyCommands `Map.union` editCommands) insertIfChar
-
-
 defaultModeHandler :: Event -> GlobalState -> IO GlobalState
 defaultModeHandler evt = findWithDefault (insertIfChar evt) evt (editCommands `Map.union` readOnlyCommands)
 

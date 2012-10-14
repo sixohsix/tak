@@ -89,19 +89,6 @@ data Event = KeyEvent Key
            | NoEvent
            deriving (Show, Eq, Ord)
 
-data DefaultMap k v = DefaultMap {
-  items :: Map.Map k v,
-  defaultValue :: k -> v
-  }
-
-defaultMapFromList :: Ord a => [(a, b)] -> (a -> b) -> DefaultMap a b
-defaultMapFromList list defaultVal =
-  DefaultMap (Map.fromList list) defaultVal
-
-lookupWithDefault :: Ord a => DefaultMap a b -> a -> b
-lookupWithDefault dMap k =
-  maybe (defaultValue dMap $ k) id (Map.lookup k (items dMap))
-
 class Editor a where
   render :: a -> Int -> Int -> RenderW ()
 
