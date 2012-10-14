@@ -67,6 +67,10 @@ editorEvtMap = defaultMapFromList [
   (KeyEvent KeyCtrlDown,       ie cursorNextPara),
   (KeyEvent KeyCtrlRight,      ie cursorNextWord),
   (KeyEvent KeyCtrlLeft,       ie cursorPrevWord),
+  (KeyEvent $ KeyEscaped $ KeyUp, ie cursorPrevPara),
+  (KeyEvent $ KeyEscaped $ KeyDown, ie cursorNextPara),
+  (KeyEvent $ KeyEscaped $ KeyRight, ie cursorNextWord),
+  (KeyEvent $ KeyEscaped $ KeyLeft, ie cursorPrevWord),
   (KeyEvent KeyCtrlHome,       ie cursorFirstPos),
   (KeyEvent KeyCtrlEnd,        ie cursorLastPos),
   (KeyEvent $ KeyCtrlChar 'P', replaceRegionWithShellCmd "echo hello")

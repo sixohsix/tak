@@ -82,6 +82,10 @@ decodeEscSeq = do
   key1 <- getNextKey
   case C.decodeKey key1 of
     C.KeyChar c -> return $ KeyEvent $ KeyEscaped $ keyCharEvt c
+    C.KeyUp     -> return $ KeyEvent $ KeyEscaped $ KeyUp
+    C.KeyDown   -> return $ KeyEvent $ KeyEscaped $ KeyDown
+    C.KeyLeft   -> return $ KeyEvent $ KeyEscaped $ KeyLeft
+    C.KeyRight  -> return $ KeyEvent $ KeyEscaped $ KeyRight
     otherwise   -> do ungetKey key1
                       return $ KeyEvent $ KeyEscape
 
