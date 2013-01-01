@@ -59,7 +59,7 @@ searchHandler sstr evt gst =
   in case evt of
        KeyEvent (KeyChar c) -> loopNextSstr (sstr ++ [c]) pos gst
        KeyEvent KeyDel      -> loopNextSstr (reverse $ drop 1 $ reverse sstr) pos gst
-       KeyEvent (KeyEscaped (KeyChar 's')) -> loopNextSstr sstr curPos gst
+       KeyEvent (KeyCtrlChar 'S') -> loopNextSstr sstr curPos gst
        KeyEvent _           -> return gst
        otherwise            -> searchLoop sstr $ preventRepaint gst
 

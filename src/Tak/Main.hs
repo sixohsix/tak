@@ -45,14 +45,14 @@ quitRightAway gst = do
 
 topEvtMap :: Map.Map Event (GlobalState -> IO GlobalState)
 topEvtMap = Map.fromList [
-  (KeyEvent $ KeyCtrlChar 'Q', quit),
-  (KeyEvent $ KeyCtrlChar 'S', \st -> do
+  (KeyEvent $ KeyEscaped $ KeyChar 'q', quit),
+  (KeyEvent $ KeyEscaped $ KeyChar 's', \st -> do
      let ed = activeEditor st
      writeFile (fileName ed) (bufferToStr $ buffer ed)
      return $ over editor (\ed -> ed { lastSavePtr = 0 }) st),
   (KeyEvent $ KeyEscaped $ KeyChar 'P', showKeyEvents),
   (KeyEvent $ KeyEscaped $ KeyChar 'G', gotoLine),
-  (KeyEvent $ KeyEscaped $ KeyChar 's', search),
+  (KeyEvent $ KeyCtrlChar 'S', search),
   (TimeoutEvent, return . preventRepaint)
   ]
 
