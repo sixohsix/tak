@@ -11,31 +11,35 @@ USAGE
 KEYBOARD SHORTCUTS
 ==================
 
-  C-q        Quit
-  C-s        Save file
-  C-z        Undo
-  C-k        Kill (delete) current line
+  There are two kinds of modifiers. Control (C-) and Meta (M-). Meta is usually
+  the Alt key, provided your terminal is sane. If your terminal is not sane, try
+  Escape, then the shortcut key.
+
+    M-q        Quit
+    M-s        Save file
+    C-z        Undo
+    C-k        Kill (delete) current line
 
 
   movement:
 
-  arrows              move around lines and rows
-  PgUp/PgDn           move up/down by a screen
-  Home                beginning of line
-  End                 end of line
-  C-arrow-l/r         move back or forwards by word (M-arrow-l/r also work)
-  C-arrow-u/d         move up or down one paragraph (separated by blank lines)
-                          (M-arrow-u/d also work)
-  M-S-g               goto line
+    arrows              move around lines and rows
+    PgUp/PgDn           move up/down by a screen
+    Home                beginning of line
+    End                 end of line
+    C-arrow-l/r         move back or forwards by word (M-arrow-l/r also work)
+    C-arrow-u/d         move up or down one paragraph (separated by blank lines)
+                            (M-arrow-u/d also work)
+    M-S-g               goto line
 
 
   copy/paste:
 
-  C-space    Begin selecting
-  C-g        Cancel selecting
-  C-x        Cut
-  C-c        Copy
-  C-v        Paste
+    C-space    Begin selecting
+    C-g        Cancel selecting
+    C-x        Cut
+    C-c        Copy
+    C-v        Paste
 
   Use C-space to begin a "region". Then use C-c to cut that region or C-c to copy 
   it. Use C-v to paste at current insertion point.
@@ -46,9 +50,9 @@ KEYBOARD SHORTCUTS
 
   searching:
 
-  M-s        Start searching
+    C-s        Start searching
 
-  When searching, type a string to search for it in the file. Use M-s again to
+  When searching, type a string to search for it in the file. Use C-s again to
   search for the next occurence. Any non-character key will quit searching.
 
 
