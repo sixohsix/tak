@@ -5,6 +5,7 @@ import Control.Lens
 import Tak.Types
 import Tak.Editor.InfoLine
 
+activeEditor :: GlobalState -> SimpleEditor
 activeEditor = view editor
 
 pasteable gst = case (view clipboard gst) of
